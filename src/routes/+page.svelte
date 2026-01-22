@@ -3,14 +3,14 @@
 </script>
 
 <main>
-    <div class="ui-layer">
-        <h1>Mijn SvelteKit Project</h1>
-        <p>De cilinder groeit op de achtergrond.</p>
-    </div>
+  <div class="ui-layer">
+    <h1>Mijn SvelteKit Project</h1>
+    <p>De cilinder groeit op de achtergrond.</p>
+  </div>
 
-    <section class="cylinder-section">
-        <CylinderCanvas />
-    </section>
+  <section class="cylinder-section">
+    <CylinderCanvas />
+  </section>
 </main>
 
 <style>

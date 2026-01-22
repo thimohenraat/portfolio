@@ -7,3 +7,37 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Build directories
+.svelte-kit
+.build
+dist/
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# SvelteKit
+**/.svelte-kit/**
+**/build/**
