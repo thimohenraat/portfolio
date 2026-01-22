@@ -1,110 +1,95 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import * as THREE from 'three';
 
   let container: HTMLDivElement;
   let animationId: number;
-  
-  // Animation parameters
-  const startX = 15;
-  const stretchSpeed = 0.3;
-  const maxLength = 30;
 
   onMount(() => {
-    // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a1a);
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      1000
-    );
-    camera.position.z = 5;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 10;
 
-    // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
 
-    // Cylinder - starts as a point
-    let cylinderLength = 0.1;
-    const geometry = new THREE.CylinderGeometry(0.5, 0.5, cylinderLength, 32);
-    const material = new THREE.MeshPhongMaterial({ 
-      color: 0x00ff88,
-      shininess: 100
-    });
-    
+    // 1. De "Anker" truc: Cilinder groeit vanaf één kant
+    const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+    geometry.translate(0, 0.5, 0); 
+
+    const material = new THREE.MeshPhongMaterial({ color: 0x00ff88, shininess: 100 });
     const cylinder = new THREE.Mesh(geometry, material);
-    cylinder.rotation.z = Math.PI / 2; // Horizontal orientation
-    cylinder.position.x = startX;
+    
+    // Kantel hem horizontaal
+    cylinder.rotation.z = Math.PI / 2; 
     scene.add(cylinder);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    // 2. Functie om de cilinder precies aan de rand te zetten
+    const updatePositioning = () => {
+      // Bereken hoe breed het scherm is in Three.js eenheden op de huidige camera afstand
+      const vFov = (camera.fov * Math.PI) / 180;
+      const visibleHeight = 2 * Math.tan(vFov / 2) * camera.position.z;
+      const visibleWidth = visibleHeight * camera.aspect;
 
+      // Zet de cilinder precies op de rechterrand
+      cylinder.position.x = visibleWidth / 2;
+      
+      // De maxScale moet nu minimaal de hele visibleWidth overbruggen
+      return visibleWidth + 2; // +2 voor een kleine overscan
+    };
+
+    let maxScale = updatePositioning();
+
+    // 3. Licht
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const pointLight = new THREE.PointLight(0xffffff, 1);
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
-    // Animation loop
+    // 4. Animatie
+    let currentScale = 0.1;
     function animate() {
       animationId = requestAnimationFrame(animate);
-
-      if (cylinderLength < maxLength) {
-        // Increase length
-        cylinderLength += stretchSpeed;
-        
-        // Update geometry with new length
-        cylinder.geometry.dispose();
-        cylinder.geometry = new THREE.CylinderGeometry(0.5, 0.5, cylinderLength, 32);
-        
-        // Move cylinder to the left as it stretches
-        // This keeps the right end in place while left end extends
-        cylinder.position.x = startX - (cylinderLength / 2);
+      if (currentScale < maxScale) {
+        currentScale += 0.4;
+        cylinder.scale.y = currentScale;
       }
-
       renderer.render(scene, camera);
     }
-
     animate();
 
-    // Handle resize
-    function handleResize() {
-      camera.aspect = container.clientWidth / container.clientHeight;
+    // 5. Resize handler (zorgt dat hij ook bij resizen beeldvullend blijft)
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    }
-
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      maxScale = updatePositioning();
+    };
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (container && renderer.domElement) {
-        container.removeChild(renderer.domElement);
-      }
+      cancelAnimationFrame(animationId);
       geometry.dispose();
       material.dispose();
       renderer.dispose();
-      if (animationId) cancelAnimationFrame(animationId);
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
     };
-  });
-
-  onDestroy(() => {
-    if (animationId) cancelAnimationFrame(animationId);
   });
 </script>
 
-<div bind:this={container} class="container"></div>
+<div bind:this={container} class="canvas-container"></div>
 
 <style>
-  .container {
-    width: 100%;
+  :global(body) { margin: 0; padding: 0; overflow: hidden; }
+  .canvas-container {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
     height: 100vh;
-    margin: 0;
   }
 </style>
