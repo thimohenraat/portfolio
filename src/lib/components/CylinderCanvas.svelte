@@ -11,6 +11,7 @@
   // ============================================================
   // ANIMATION STATE
   // ============================================================
+    const clock = new THREE.Clock();
   let animationFinished = false;           // Schakelaar: true = animatie klaar
     let currentScale = 0.1;                  // Huidige schaal van de cylinder (begint klein)
   const STRETCH_SPEED = 0.4;               // Hoe snel de cylinder groeit per frame
@@ -50,7 +51,8 @@
     
     renderer = new THREE.WebGLRenderer({ 
       antialias: true,              // Gladde randen
-      alpha: true                   // Transparante achtergrond
+      alpha: true,                   // Transparante achtergrond
+      powerPreference: "high-performance"
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -118,8 +120,10 @@
   const animate = (): void => {
     // Vraag het volgende frame aan
     animationId = requestAnimationFrame(animate);
-    
+
+    // Gebruik delta (tijd sinds vorig frame) voor constante snelheid
     // Bereken de target schaal (volledige schermbreedte + marge)
+    const delta = clock.getDelta(); 
     const visibleWidth = getVisibleWidth();
     const targetScale = visibleWidth + VISIBLE_WIDTH_MARGIN;
     
@@ -127,7 +131,7 @@
     if (!animationFinished) {
       if (currentScale < targetScale) {
         // Groei de cylinder
-        currentScale += STRETCH_SPEED;
+        currentScale += STRETCH_SPEED * delta * 60;;
       } else {
         // Stop de animatie wanneer target bereikt is
         animationFinished = true;
