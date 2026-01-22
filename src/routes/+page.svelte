@@ -1,29 +1,24 @@
 <script>
-  import CylinderCanvas from '$lib/components/CylinderCanvas.svelte';
+  import CylinderCanvas from '$lib/components/cylinder/CylinderCanvas.svelte';
 </script>
 
 <main>
   <div class="ui-layer">
-    <h1>Mijn SvelteKit Project</h1>
+    <h1>Mijn Portfolio</h1>
     <p>De cilinder groeit op de achtergrond.</p>
   </div>
 
+  <!-- Cylinder Canvas sectie -->
   <section class="cylinder-section">
     <CylinderCanvas />
   </section>
 </main>
 
 <style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-    overflow: hidden; /* voorkomt scrollbars */
-  }
-
   main {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
   }
 
   .ui-layer {
