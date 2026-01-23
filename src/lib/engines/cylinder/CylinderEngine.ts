@@ -25,7 +25,7 @@ export class CylinderEngine {
       0.1,
       1000
     );
-    this.camera.position.z = config.cameraZ;
+    this.camera.position.z = config.camera.z;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -97,9 +97,12 @@ export class CylinderEngine {
 
   private update() {
     const head = Math.min(this.progress, 1);
-    const tail = Math.min(Math.max(0, head - this.config.initialCylinderLength), this.stopRatio);
+    const tail = Math.min(
+      Math.max(0, head - this.config.animation.initialLengthRatio),
+      this.stopRatio
+    );
 
-    const step = this.config.radialSegments * 6;
+    const step = this.config.geometry.radialSegments * 6;
 
     [this.mesh1, this.mesh2].forEach(m => {
       if (!m) return;
@@ -124,7 +127,7 @@ export class CylinderEngine {
 
       if (!this.animationFinished) {
         const dt = Math.min(this.clock.getDelta(), 0.05);
-        this.progress += dt * this.config.animationSpeed;
+        this.progress += dt * this.config.animation.speed;
         this.update();
 
         if (this.progress >= 1) {

@@ -7,10 +7,10 @@ export class MaterialManager {
   static getMaterial(config: CylinderConfig) {
     if (!this.material) {
       this.material = new THREE.MeshPhongMaterial({
-        color: config.color,
-        shininess: config.shininess,
-        emissive: new THREE.Color(config.color),
-        emissiveIntensity: config.emissiveIntensity,
+        color: config.material.color,
+        shininess: config.material.shininess,
+        emissive: new THREE.Color(config.material.color),
+        emissiveIntensity: config.material.emissiveIntensity,
       });
     }
     return this.material;
@@ -19,9 +19,9 @@ export class MaterialManager {
   static createGeometry(curve: THREE.Curve<THREE.Vector3>, config: CylinderConfig) {
     return new THREE.TubeGeometry(
       curve,
-      config.tubeSegments,
-      config.radius,
-      config.radialSegments,
+      config.geometry.tubeSegments,
+      config.geometry.radius,
+      config.geometry.radialSegments,
       false
     );
   }

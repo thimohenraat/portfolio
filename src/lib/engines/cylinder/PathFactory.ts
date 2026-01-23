@@ -3,7 +3,7 @@ import type { CylinderConfig } from '../../types/cylinder';
 
 export class PathFactory {
   static getCurves(visibleWidth: number, config: CylinderConfig) {
-    const { ovalWidthScale, lineYOffset, margin } = config;
+    const { ovalWidthScale, lineYOffset, margin } = config.geometry;
     const turnPoint = (visibleWidth * ovalWidthScale) / 2;
     const offScreen = visibleWidth / 2 + margin;
 
