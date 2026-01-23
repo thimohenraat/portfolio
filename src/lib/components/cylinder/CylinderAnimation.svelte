@@ -1,14 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { CylinderEngine } from './CylinderEngine';
-  import { DEFAULT_CONFIG } from './types';
+  import { CylinderEngine } from '$lib/engines/cylinder/CylinderEngine';
+  import { DEFAULT_CONFIG } from '$lib/types/cylinder';
+  import type { CylinderConfig } from '$lib/types/cylinder';
+
+  export let options: Partial<CylinderConfig> = {};
 
   let container: HTMLDivElement;
   let engine: CylinderEngine;
 
   onMount(() => {
-    // Initialiseer de class
-    engine = new CylinderEngine(container, DEFAULT_CONFIG);
+    engine = new CylinderEngine(container, { ...DEFAULT_CONFIG, ...options });
     engine.animate();
 
     const handleResize = () => engine.resize();
@@ -21,13 +23,14 @@
   });
 </script>
 
-<div bind:this={container} class="canvas-container"></div>
+<div bind:this={container} class="animation-container"></div>
 
 <style>
-  .canvas-container {
+  .animation-container {
     position: fixed;
     inset: 0;
     z-index: 0;
+    background: #0a0a2a;
     overflow: hidden;
   }
 </style>

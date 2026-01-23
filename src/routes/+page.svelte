@@ -2,32 +2,18 @@
   import CylinderAnimation from '$lib/components/cylinder/CylinderAnimation.svelte';
 </script>
 
-<main>
-  <div class="ui-layer">
-    <h1>Mijn Portfolio</h1>
-    <p>De cilinder groeit op de achtergrond.</p>
-  </div>
+<CylinderAnimation options={{ color: 0x00ffff, animationSpeed: 0.5 }} />
 
-  <!-- Cylinder Canvas sectie -->
-  <section class="cylinder-section">
-    <CylinderAnimation />
-  </section>
+<main>
+  <h1>Cylinder Animation</h1>
 </main>
 
 <style>
   main {
     position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .ui-layer {
-    position: absolute;
-    top: 2rem;
-    left: 2rem;
-    z-index: 10; /* boven canvas */
+    z-index: 1;
     color: white;
-    font-family: system-ui, sans-serif;
-    pointer-events: none; /* canvas blijft interactief */
+    padding: 2rem;
+    font-family: sans-serif;
   }
 </style>
