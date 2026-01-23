@@ -31,7 +31,7 @@ export interface CylinderConfig {
 
 export const DEFAULT_CONFIG: CylinderConfig = {
   material: {
-    color: 0x00ff88,
+    color: 0x1e90ff,
     emissiveIntensity: 0.2,
     shininess: 100,
   },
