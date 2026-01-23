@@ -53,7 +53,6 @@ export class CylinderEngine {
   }
 
   private createTrack(): void {
-    // Remove old track if it exists
     if (this.trackMesh) {
       this.trackMesh.geometry.dispose();
       (this.trackMesh.material as THREE.Material).dispose();
@@ -62,40 +61,54 @@ export class CylinderEngine {
     }
 
     const visibleWidth = this.getVisibleWidth();
-    const edgeRight = visibleWidth / 2;
-    const turnPoint = edgeRight - visibleWidth / 1.5;
+
+    /**
+     * CENTRERING LOGICA:
+     * We verdelen het scherm in 3 gelijke vlakken.
+     * De bochten komen op de grenzen van het middelste vlak.
+     */
+    const oneThird = visibleWidth / 3;
+    const turnPointLeft = -oneThird / 2; // Grens tussen linkervlak en middenvlak
+    const turnPointRight = oneThird / 2; // Grens tussen middenvlak en rechtervlak
 
     const lineTop = 2;
     const lineBottom = -2;
     const turnRadius = Math.abs(lineTop - lineBottom) / 2;
-    const margin = 2;
+    const centerY = (lineTop + lineBottom) / 2;
 
     const points: THREE.Vector3[] = [];
+    const segments = 24; // Iets meer voor een perfecte ronde bocht
 
-    // Top straight section
-    points.push(new THREE.Vector3(edgeRight + margin, lineTop, 0));
-    points.push(new THREE.Vector3(turnPoint, lineTop, 0));
+    // 1. BOVENSTE RECHTE LIJN (van rechts naar links)
+    points.push(new THREE.Vector3(turnPointRight, lineTop, 0));
+    points.push(new THREE.Vector3(turnPointLeft, lineTop, 0));
 
-    // Turn section - half circle
-    const centerX = turnPoint;
-    const centerY = lineTop + lineBottom;
-    const segments = 20; // Meer segments voor betere aansluiting
-
+    // 2. LINKER BOCHT (180° draai naar beneden)
     for (let i = 1; i < segments; i++) {
-      // i=1 en i<segments om dubbele punten te vermijden
       const angle = Math.PI / 2 + (i / segments) * Math.PI;
-      const x = centerX + turnRadius * Math.cos(angle);
+      const x = turnPointLeft + turnRadius * Math.cos(angle);
       const y = centerY + turnRadius * Math.sin(angle);
       points.push(new THREE.Vector3(x, y, 0));
     }
 
-    // Bottom straight section
-    points.push(new THREE.Vector3(turnPoint, lineBottom, 0));
-    points.push(new THREE.Vector3(edgeRight + margin, lineBottom, 0));
+    // 3. ONDERSTE RECHTE LIJN (van links naar rechts)
+    points.push(new THREE.Vector3(turnPointLeft, lineBottom, 0));
+    points.push(new THREE.Vector3(turnPointRight, lineBottom, 0));
 
-    // Create curve and tube once
-    const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0);
-    const geometry = new THREE.TubeGeometry(curve, 200, 0.25, 8, false);
+    // 4. RECHTER BOCHT (180° draai omhoog)
+    for (let i = 1; i < segments; i++) {
+      const angle = (3 * Math.PI) / 2 + (i / segments) * Math.PI;
+      const x = turnPointRight + turnRadius * Math.cos(angle);
+      const y = centerY + turnRadius * Math.sin(angle);
+      points.push(new THREE.Vector3(x, y, 0));
+    }
+
+    // Creëer de gesloten curve
+    const curve = new THREE.CatmullRomCurve3(points, true);
+
+    // Tube maken
+    const geometry = new THREE.TubeGeometry(curve, 256, 0.25, 12, true);
+
     const material = new THREE.MeshPhongMaterial({
       color: this.config.color,
       shininess: 100,
@@ -104,8 +117,10 @@ export class CylinderEngine {
 
     this.trackMesh = new THREE.Mesh(geometry, material);
 
-    // Start invisible
-    this.trackMesh.geometry.setDrawRange(0, 0);
+    // Behoud de huidige voortgang bij resize
+    const totalIndices = this.trackMesh.geometry.index?.count || 0;
+    this.trackMesh.geometry.setDrawRange(0, Math.floor(this.progress * totalIndices));
+
     this.scene.add(this.trackMesh);
   }
 
