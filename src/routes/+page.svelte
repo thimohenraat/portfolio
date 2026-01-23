@@ -1,5 +1,5 @@
 <script>
-  import CylinderCanvas from '$lib/components/cylinder/CylinderCanvas.svelte';
+  import CylinderAnimation from '$lib/components/cylinder/CylinderAnimation.svelte';
 </script>
 
 <main>
@@ -10,7 +10,7 @@
 
   <!-- Cylinder Canvas sectie -->
   <section class="cylinder-section">
-    <CylinderCanvas />
+    <CylinderAnimation />
   </section>
 </main>
 
