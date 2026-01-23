@@ -2,7 +2,6 @@ export interface CylinderConfig {
   color: number;
   emissiveIntensity: number;
   shininess: number;
-  zOffset: number;
   radius: number;
   radialSegments: number;
   tubeSegments: number;
@@ -18,7 +17,6 @@ export const DEFAULT_CONFIG: CylinderConfig = {
   color: 0x00ff88,
   emissiveIntensity: 0.2,
   shininess: 100,
-  zOffset: 0.01,
   radius: 0.25,
   radialSegments: 12,
   tubeSegments: 300,

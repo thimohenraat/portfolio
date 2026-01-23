@@ -7,7 +7,7 @@ export class MaterialManager {
     curve2: THREE.Curve<THREE.Vector3>,
     config: CylinderConfig
   ) {
-    const { radius, radialSegments, color, emissiveIntensity, shininess, zOffset } = config;
+    const { radius, radialSegments, color, emissiveIntensity, shininess } = config;
 
     const mat = new THREE.MeshPhongMaterial({
       color,
@@ -21,7 +21,6 @@ export class MaterialManager {
 
     const mesh1 = new THREE.Mesh(geo1, mat);
     const mesh2 = new THREE.Mesh(geo2, mat.clone());
-    mesh2.position.z = zOffset;
 
     return { mesh1, mesh2 };
   }
