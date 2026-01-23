@@ -53,39 +53,48 @@ export class CylinderEngine {
   }
 
   private createTrack(): void {
-    const visibleWidth = this.getVisibleWidth();
-    const rightEdge = visibleWidth / 2;
-    const turnPointX = rightEdge - visibleWidth / 1.5;
+    // Remove old track if it exists
+    if (this.trackMesh) {
+      this.trackMesh.geometry.dispose();
+      (this.trackMesh.material as THREE.Material).dispose();
+      this.scene.remove(this.trackMesh);
+      this.trackMesh = null;
+    }
 
-    const topY = 2;
-    const bottomY = -2;
-    const curveRadius = Math.abs(topY - bottomY) / 2;
+    const visibleWidth = this.getVisibleWidth();
+    const edgeRight = visibleWidth / 2;
+    const turnPoint = edgeRight - visibleWidth / 1.5;
+
+    const lineTop = 2;
+    const lineBottom = -2;
+    const turnRadius = Math.abs(lineTop - lineBottom) / 2;
     const margin = 2;
 
     const points: THREE.Vector3[] = [];
 
-    // Heenweg
-    points.push(new THREE.Vector3(rightEdge + margin, topY, 0));
-    points.push(new THREE.Vector3(turnPointX, topY, 0));
+    // Top straight section
+    points.push(new THREE.Vector3(edgeRight + margin, lineTop, 0));
+    points.push(new THREE.Vector3(turnPoint, lineTop, 0));
 
-    // U-bocht
-    const centerX = turnPointX;
-    const centerY = (topY + bottomY) / 2;
-    const segments = 16;
+    // Turn section - half circle
+    const centerX = turnPoint;
+    const centerY = lineTop + lineBottom;
+    const segments = 20; // Meer segments voor betere aansluiting
 
-    for (let i = 0; i <= segments; i++) {
+    for (let i = 1; i < segments; i++) {
+      // i=1 en i<segments om dubbele punten te vermijden
       const angle = Math.PI / 2 + (i / segments) * Math.PI;
-      const x = centerX + curveRadius * Math.cos(angle);
-      const y = centerY + curveRadius * Math.sin(angle);
+      const x = centerX + turnRadius * Math.cos(angle);
+      const y = centerY + turnRadius * Math.sin(angle);
       points.push(new THREE.Vector3(x, y, 0));
     }
 
-    // Terugweg
-    points.push(new THREE.Vector3(turnPointX, bottomY, 0));
-    points.push(new THREE.Vector3(rightEdge + margin, bottomY, 0));
+    // Bottom straight section
+    points.push(new THREE.Vector3(turnPoint, lineBottom, 0));
+    points.push(new THREE.Vector3(edgeRight + margin, lineBottom, 0));
 
-    // Maak curve en tube EENMALIG
-    const curve = new THREE.CatmullRomCurve3(points);
+    // Create curve and tube once
+    const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0);
     const geometry = new THREE.TubeGeometry(curve, 200, 0.25, 8, false);
     const material = new THREE.MeshPhongMaterial({
       color: this.config.color,
@@ -95,7 +104,7 @@ export class CylinderEngine {
 
     this.trackMesh = new THREE.Mesh(geometry, material);
 
-    // Start met geometry onzichtbaar
+    // Start invisible
     this.trackMesh.geometry.setDrawRange(0, 0);
     this.scene.add(this.trackMesh);
   }
@@ -104,6 +113,18 @@ export class CylinderEngine {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Recreate track with new dimensions but keep progress
+    const currentProgress = this.progress;
+    this.createTrack();
+    this.progress = currentProgress;
+
+    // Apply current progress immediately
+    if (this.trackMesh) {
+      const totalIndices = this.trackMesh.geometry.index?.count || 0;
+      const visibleIndices = Math.floor(this.progress * totalIndices);
+      this.trackMesh.geometry.setDrawRange(0, visibleIndices);
+    }
   }
 
   public animate = (): void => {
