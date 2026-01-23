@@ -43,25 +43,54 @@ export class CylinderEngine {
     this.build();
   }
 
+  private calculateStopRatio(curve: THREE.Curve<THREE.Vector3>, turnPoint: number) {
+    const samples = 200; // licht, maar nauwkeurig
+    let length = 0;
+    let stopLength = 0;
+
+    let prev = curve.getPoint(0);
+
+    for (let i = 1; i <= samples; i++) {
+      const t = i / samples;
+      const p = curve.getPoint(t);
+      const seg = p.distanceTo(prev);
+      length += seg;
+
+      if (p.x <= turnPoint && stopLength === 0) {
+        stopLength = length;
+      }
+
+      prev = p;
+    }
+
+    return stopLength / length;
+  }
+
   private build() {
     const visibleWidth =
       2 * Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z * this.camera.aspect;
+
     const { curve1, curve2, turnPoint } = PathFactory.getCurves(visibleWidth, this.config);
 
-    if (this.mesh1)
-      [this.mesh1, this.mesh2].forEach(m => {
-        this.scene.remove(m);
-        m.geometry.dispose();
-      });
+    // 🔥 Oude meshes netjes opruimen
+    [this.mesh1, this.mesh2].forEach(m => {
+      if (!m) return;
+      this.scene.remove(m);
+      m.geometry.dispose();
+    });
 
-    const meshes = MaterialManager.createMeshes(curve1, curve2, this.config);
-    this.mesh1 = meshes.mesh1;
-    this.mesh2 = meshes.mesh2;
+    const material = MaterialManager.getMaterial(this.config);
+
+    const geo1 = MaterialManager.createGeometry(curve1, this.config);
+    const geo2 = MaterialManager.createGeometry(curve2, this.config);
+
+    this.mesh1 = new THREE.Mesh(geo1, material);
+    this.mesh2 = new THREE.Mesh(geo2, material);
+
     this.scene.add(this.mesh1, this.mesh2);
 
-    const points = curve1.getSpacedPoints(this.config.tubeSegments);
-    const target = new THREE.Vector3(turnPoint, this.config.lineYOffset, 0);
-    this.stopRatio = points.findIndex(p => p.distanceTo(target) < 0.1) / this.config.tubeSegments;
+    // ✅ SNELLE stopRatio (geen getSpacedPoints!)
+    this.stopRatio = this.calculateStopRatio(curve1, turnPoint);
 
     this.update();
   }
@@ -69,24 +98,45 @@ export class CylinderEngine {
   private update() {
     const head = Math.min(this.progress, 1);
     const tail = Math.min(Math.max(0, head - this.config.initialCylinderLength), this.stopRatio);
+
     const step = this.config.radialSegments * 6;
 
     [this.mesh1, this.mesh2].forEach(m => {
-      const total = m.geometry.index?.count || 0;
-      const s = Math.floor((tail * total) / step) * step;
-      const e = Math.floor((head * total) / step) * step;
-      m.geometry.setDrawRange(s, Math.max(0, e - s));
+      if (!m) return;
+
+      const geo = m.geometry as THREE.BufferGeometry;
+      const total = geo.index!.count;
+
+      const start = (((tail * total) / step) | 0) * step;
+      const end = (((head * total) / step) | 0) * step;
+
+      const count = Math.min(total - start, Math.max(0, end - start));
+
+      geo.setDrawRange(start, count);
     });
   }
 
   public animate = () => {
-    this.animationId = requestAnimationFrame(this.animate);
-    if (!this.animationFinished) {
-      this.progress += this.clock.getDelta() * this.config.animationSpeed;
-      this.update();
-      if (this.progress >= 1) this.animationFinished = true;
-    }
-    this.renderer.render(this.scene, this.camera);
+    this.clock.start();
+
+    const loop = () => {
+      this.animationId = requestAnimationFrame(loop);
+
+      if (!this.animationFinished) {
+        const dt = Math.min(this.clock.getDelta(), 0.05);
+        this.progress += dt * this.config.animationSpeed;
+        this.update();
+
+        if (this.progress >= 1) {
+          this.progress = 1;
+          this.animationFinished = true;
+        }
+      }
+
+      this.renderer.render(this.scene, this.camera);
+    };
+
+    loop();
   };
 
   public resize() {
@@ -98,7 +148,16 @@ export class CylinderEngine {
 
   public destroy() {
     cancelAnimationFrame(this.animationId);
+
+    [this.mesh1, this.mesh2].forEach(m => {
+      if (!m) return;
+      m.geometry.dispose();
+      this.scene.remove(m);
+    });
+
+    MaterialManager.dispose();
+
     this.renderer.dispose();
-    this.container.innerHTML = '';
+    this.container.removeChild(this.renderer.domElement);
   }
 }

@@ -2,26 +2,32 @@ import * as THREE from 'three';
 import type { CylinderConfig } from '../../types/cylinder';
 
 export class MaterialManager {
-  static createMeshes(
-    curve1: THREE.Curve<THREE.Vector3>,
-    curve2: THREE.Curve<THREE.Vector3>,
-    config: CylinderConfig
-  ) {
-    const { radius, radialSegments, color, emissiveIntensity, shininess } = config;
+  private static material: THREE.MeshPhongMaterial | null = null;
 
-    const mat = new THREE.MeshPhongMaterial({
-      color,
-      shininess,
-      emissive: new THREE.Color(color),
-      emissiveIntensity,
-    });
+  static getMaterial(config: CylinderConfig) {
+    if (!this.material) {
+      this.material = new THREE.MeshPhongMaterial({
+        color: config.color,
+        shininess: config.shininess,
+        emissive: new THREE.Color(config.color),
+        emissiveIntensity: config.emissiveIntensity,
+      });
+    }
+    return this.material;
+  }
 
-    const geo1 = new THREE.TubeGeometry(curve1, 256, radius, radialSegments, false);
-    const geo2 = new THREE.TubeGeometry(curve2, 256, radius, radialSegments, false);
+  static createGeometry(curve: THREE.Curve<THREE.Vector3>, config: CylinderConfig) {
+    return new THREE.TubeGeometry(
+      curve,
+      config.tubeSegments,
+      config.radius,
+      config.radialSegments,
+      false
+    );
+  }
 
-    const mesh1 = new THREE.Mesh(geo1, mat);
-    const mesh2 = new THREE.Mesh(geo2, mat.clone());
-
-    return { mesh1, mesh2 };
+  static dispose() {
+    this.material?.dispose();
+    this.material = null;
   }
 }
