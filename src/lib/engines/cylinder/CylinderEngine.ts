@@ -76,7 +76,12 @@ export class CylinderEngine {
     this.build();
   }
 
-  private calculateStopRatio(curve: THREE.Curve<THREE.Vector3>, turnPoint: number) {
+  // Pas calculateStopRatio aan om met absolute waarden te werken (voor de -1 multiplier)
+  private calculateStopRatio(
+    curve: THREE.Curve<THREE.Vector3>,
+    turnPoint: number,
+    isMobile: boolean
+  ) {
     const samples = 200;
     let length = 0;
     let stopLength = 0;
@@ -85,14 +90,18 @@ export class CylinderEngine {
     for (let i = 1; i <= samples; i++) {
       const p = curve.getPoint(i / samples);
       length += p.distanceTo(prev);
-      if (p.x <= turnPoint && stopLength === 0) stopLength = length;
+
+      // Op mobiel checken we de Y-as, op desktop de X-as
+      const val = isMobile ? p.y : p.x;
+      const reached = turnPoint > 0 ? val <= turnPoint : val >= turnPoint;
+
+      if (reached && stopLength === 0) stopLength = length;
       prev = p;
     }
     return stopLength / length;
   }
 
   private build() {
-    // Verwijder oude meshes...
     [this.mesh1, this.mesh2].forEach(m => {
       if (m) {
         this.scene.remove(m);
@@ -100,20 +109,28 @@ export class CylinderEngine {
       }
     });
 
-    // Nauwkeurige berekening van wat de camera werkelijk ziet op de z-as:
     const vFOV = (this.camera.fov * Math.PI) / 180;
     const visibleHeight = 2 * Math.tan(vFOV / 2) * this.camera.position.z;
     const visibleWidth = visibleHeight * this.camera.aspect;
 
-    // Geef deze visibleWidth door aan de PathFactory
-    const { curve1, curve2, turnPoint } = PathFactory.getCurves(visibleWidth, this.config);
+    const isMobile = window.innerWidth < 650;
+
+    // Geef beide maten door
+    const { curve1, curve2, turnPoint } = PathFactory.getCurves(
+      visibleWidth,
+      visibleHeight,
+      this.config,
+      isMobile
+    );
 
     const material = MaterialManager.getMaterial(this.config);
     this.mesh1 = new THREE.Mesh(MaterialManager.createGeometry(curve1, this.config), material);
     this.mesh2 = new THREE.Mesh(MaterialManager.createGeometry(curve2, this.config), material);
 
     this.scene.add(this.mesh1, this.mesh2);
-    this.stopRatio = this.calculateStopRatio(curve1, turnPoint);
+
+    // StopRatio checkt nu dynamisch op de juiste as
+    this.stopRatio = this.calculateStopRatio(curve1, turnPoint, isMobile);
     this.update();
   }
 
