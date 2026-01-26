@@ -31,5 +31,9 @@
     inset: 0;
     z-index: 0;
     overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 </style>

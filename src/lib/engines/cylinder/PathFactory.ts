@@ -3,26 +3,21 @@ import type { CylinderConfig } from '../../types/cylinder';
 
 export class PathFactory {
   static getCurves(visibleWidth: number, config: CylinderConfig) {
-    const { ovalWidthScale, lineYOffset, margin } = config.geometry;
+    const { ovalWidthScale, lineYOffset } = config.geometry;
     const turnPoint = (visibleWidth * ovalWidthScale) / 2;
-    const offScreen = visibleWidth / 2 + margin;
 
-    const curve1 = this.createPath(offScreen, turnPoint, lineYOffset, true);
-    const curve2 = this.createPath(-offScreen, -turnPoint, -lineYOffset, false);
+    // De curve begint nu direct op het turnPoint
+    const curve1 = this.createPath(turnPoint, lineYOffset, true);
+    const curve2 = this.createPath(-turnPoint, -lineYOffset, false);
 
     return { curve1, curve2, turnPoint };
   }
 
-  private static createPath(
-    start: number,
-    turn: number,
-    y: number,
-    isTop: boolean
-  ): THREE.CatmullRomCurve3 {
+  private static createPath(turn: number, y: number, isTop: boolean): THREE.CatmullRomCurve3 {
+    // We beginnen direct bij het keerpunt (turn)
     const pts = [
-      new THREE.Vector3(start, y, 0),
       new THREE.Vector3(turn, y, 0),
-      new THREE.Vector3(-turn, y, 0),
+      new THREE.Vector3(-turn, y, 0), // Lijn tussen de twee bocht-punten
     ];
 
     const segments = 64;
@@ -32,7 +27,12 @@ export class PathFactory {
         new THREE.Vector3(-turn + Math.abs(y) * Math.cos(angle), Math.abs(y) * Math.sin(angle), 0)
       );
     }
+
+    // Eindpunt in het midden
     pts.push(new THREE.Vector3(0, -y, 0));
-    return new THREE.CatmullRomCurve3(pts);
+
+    const curve = new THREE.CatmullRomCurve3(pts);
+    curve.closed = false;
+    return curve;
   }
 }

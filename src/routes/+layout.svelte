@@ -28,4 +28,13 @@
   :global(html) {
     scroll-behavior: smooth;
   }
+
+  :global(html),
+  :global(body) {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
 </style>

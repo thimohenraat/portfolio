@@ -14,12 +14,17 @@ export interface CylinderGeometryConfig {
 }
 
 export interface CylinderAnimationConfig {
-  speed: number; // progress per second
-  initialLengthRatio: number; // 0–1 of curve
+  speed: number;
+  initialLengthRatio: number;
 }
 
 export interface CylinderCameraConfig {
   z: number;
+}
+
+export interface BreakpointConfig {
+  width: number;
+  camera: CylinderCameraConfig;
 }
 
 export interface CylinderConfig {
@@ -27,6 +32,12 @@ export interface CylinderConfig {
   geometry: CylinderGeometryConfig;
   animation: CylinderAnimationConfig;
   camera: CylinderCameraConfig;
+  breakpoints: {
+    mobile: BreakpointConfig;
+    tablet: BreakpointConfig;
+    desktop: BreakpointConfig;
+    ultrawide: BreakpointConfig;
+  };
 }
 
 export const DEFAULT_CONFIG: CylinderConfig = {
@@ -44,10 +55,16 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     margin: 5,
   },
   animation: {
-    speed: 0.4, // per seconde
-    initialLengthRatio: 0.5, // 20% zichtbaar
+    speed: 0.4,
+    initialLengthRatio: 0.5,
   },
   camera: {
     z: 12,
+  },
+  breakpoints: {
+    mobile: { width: 375, camera: { z: 10 } },
+    tablet: { width: 768, camera: { z: 12 } },
+    desktop: { width: 1440, camera: { z: 14 } },
+    ultrawide: { width: 1920, camera: { z: 16 } },
   },
 };
