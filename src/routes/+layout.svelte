@@ -20,7 +20,6 @@
 
   /* Base body styling */
   :global(body) {
-    color: #fff;
     min-height: 100vh;
     overflow-x: hidden; /* Alleen horizontaal hidden */
   }

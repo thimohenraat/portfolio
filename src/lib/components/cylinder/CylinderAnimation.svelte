@@ -30,7 +30,6 @@
     position: fixed;
     inset: 0;
     z-index: 0;
-    background: #0a0a2a;
     overflow: hidden;
   }
 </style>

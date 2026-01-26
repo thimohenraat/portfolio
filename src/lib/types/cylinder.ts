@@ -45,7 +45,7 @@ export const DEFAULT_CONFIG: CylinderConfig = {
   },
   animation: {
     speed: 0.4, // per seconde
-    initialLengthRatio: 0.2, // 20% zichtbaar
+    initialLengthRatio: 0.5, // 20% zichtbaar
   },
   camera: {
     z: 12,

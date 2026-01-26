@@ -12,7 +12,7 @@
   main {
     position: relative;
     z-index: 1;
-    color: white;
+    color: black;
     padding: 2rem;
     font-family: sans-serif;
   }
