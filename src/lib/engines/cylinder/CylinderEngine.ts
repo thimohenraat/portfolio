@@ -42,15 +42,25 @@ export class CylinderEngine {
     const { breakpoints } = this.config;
 
     if (w < 650) return breakpoints.mobile;
-    if (w < 1024) return breakpoints.tablet;
-    if (w < 1728) return breakpoints.desktop;
-    return breakpoints.ultrawide;
+    if (w < 1240) return breakpoints.tablet;
+    return breakpoints.desktop;
   }
 
   private setRendererSize() {
     const bp = this.getBreakpoint();
-    this.fixedWidth = bp.width;
-    this.fixedHeight = window.innerHeight;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const isMobile = w < 650;
+
+    if (isMobile) {
+      // Mobile: Volledig scherm (responsief)
+      this.fixedWidth = w;
+      this.fixedHeight = h;
+    } else {
+      // Desktop: Vaste breedte en vaste hoogte
+      this.fixedWidth = bp.width;
+      this.fixedHeight = 600; // Vaste hoogte voor desktop
+    }
 
     this.camera.aspect = this.fixedWidth / this.fixedHeight;
     this.camera.position.z = bp.camera.z;
@@ -76,7 +86,6 @@ export class CylinderEngine {
     this.build();
   }
 
-  // Pas calculateStopRatio aan om met absolute waarden te werken (voor de -1 multiplier)
   private calculateStopRatio(
     curve: THREE.Curve<THREE.Vector3>,
     turnPoint: number,
@@ -91,7 +100,7 @@ export class CylinderEngine {
       const p = curve.getPoint(i / samples);
       length += p.distanceTo(prev);
 
-      // Op mobiel checken we de Y-as, op desktop de X-as
+      // Op mobiel kijken we naar Y, op desktop naar X
       const val = isMobile ? p.y : p.x;
       const reached = turnPoint > 0 ? val <= turnPoint : val >= turnPoint;
 
@@ -102,6 +111,7 @@ export class CylinderEngine {
   }
 
   private build() {
+    // Verwijder oude meshes...
     [this.mesh1, this.mesh2].forEach(m => {
       if (m) {
         this.scene.remove(m);
@@ -109,13 +119,13 @@ export class CylinderEngine {
       }
     });
 
+    const w = window.innerWidth;
+    const isMobile = w < 650;
+
     const vFOV = (this.camera.fov * Math.PI) / 180;
     const visibleHeight = 2 * Math.tan(vFOV / 2) * this.camera.position.z;
     const visibleWidth = visibleHeight * this.camera.aspect;
 
-    const isMobile = window.innerWidth < 650;
-
-    // Geef beide maten door
     const { curve1, curve2, turnPoint } = PathFactory.getCurves(
       visibleWidth,
       visibleHeight,
@@ -129,16 +139,14 @@ export class CylinderEngine {
 
     this.scene.add(this.mesh1, this.mesh2);
 
-    // StopRatio checkt nu dynamisch op de juiste as
+    // STOP: Verwijder de mesh.rotation.z logica hier!
+
     this.stopRatio = this.calculateStopRatio(curve1, turnPoint, isMobile);
     this.update();
   }
 
   private update() {
     const head = Math.min(this.progress, 1);
-
-    // De tail staat op 0 zodat de cilinder vanuit het beginpunt 'groeit'
-    // Als progress 0.5 is, is hij voor de helft getekend vanaf het turnPoint.
     const tail = 0;
 
     const step = this.config.geometry.radialSegments * 6;
@@ -148,7 +156,7 @@ export class CylinderEngine {
       const geo = m.geometry as THREE.BufferGeometry;
       const total = geo.index!.count;
 
-      const start = 0; // Altijd bij het begin van de nieuwe curve
+      const start = 0;
       const end = Math.floor((head * total) / step) * step;
 
       geo.setDrawRange(start, Math.max(0, end - start));

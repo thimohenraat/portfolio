@@ -37,6 +37,7 @@ export interface CylinderConfig {
     tablet: BreakpointConfig;
     desktop: BreakpointConfig;
     ultrawide: BreakpointConfig;
+    max: BreakpointConfig;
   };
 }
 
@@ -47,7 +48,7 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     shininess: 100,
   },
   geometry: {
-    radius: 0.25,
+    radius: 0.45,
     radialSegments: 12,
     tubeSegments: 300,
     ovalWidthScale: 0.5,
@@ -62,9 +63,19 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     z: 12,
   },
   breakpoints: {
-    mobile: { width: 375, camera: { z: 10 } },
+    mobile: { width: 400, camera: { z: 10 } },
     tablet: { width: 768, camera: { z: 12 } },
-    desktop: { width: 1440, camera: { z: 14 } },
-    ultrawide: { width: 1920, camera: { z: 16 } },
+    desktop: {
+      width: 1000,
+      camera: { z: 14 },
+    },
+    ultrawide: {
+      width: 1150,
+      camera: { z: 15 },
+    },
+    max: {
+      width: 1150,
+      camera: { z: 15 },
+    },
   },
 };
