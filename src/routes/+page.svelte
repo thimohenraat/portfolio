@@ -1,12 +1,14 @@
 <script>
   import CylinderAnimation from '$lib/components/cylinder/CylinderAnimation.svelte';
+  import Header from '$lib/components/Header.svelte';
 </script>
 
+<!-- <Header /> -->
 <CylinderAnimation />
 
-<main>
+<!-- <main>
   <h1>Cylinder Animation</h1>
-</main>
+</main> -->
 
 <style>
   main {

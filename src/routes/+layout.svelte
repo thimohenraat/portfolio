@@ -22,6 +22,7 @@
   :global(body) {
     min-height: 100vh;
     overflow-x: hidden; /* Alleen horizontaal hidden */
+    background-color: #fcfeff;
   }
 
   /* Smooth scrolling */
