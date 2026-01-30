@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { CylinderConfig, BreakpointConfig } from '../../types/cylinder';
 import { PathFactory } from './PathFactory';
 import { MaterialManager } from './MaterialManager';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 
 export class CylinderEngine {
   private scene = new THREE.Scene();
@@ -16,11 +17,15 @@ export class CylinderEngine {
   public animationFinished = false;
   private fixedWidth = 0;
   private fixedHeight = 0;
+  private lights: { light: THREE.RectAreaLight; phase: number }[] = [];
+  private flickerTimer = 0;
+  private isFullyActive = false;
 
   constructor(
     private container: HTMLDivElement,
     private config: CylinderConfig
   ) {
+    RectAreaLightUniformsLib.init();
     this.camera = new THREE.PerspectiveCamera(
       60,
       window.innerWidth / window.innerHeight,
@@ -79,13 +84,25 @@ export class CylinderEngine {
   }
 
   private init() {
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const direct = new THREE.DirectionalLight(0xffffff, 0.8);
-    direct.position.set(5, 10, 7);
-    this.scene.add(direct);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.05)); // Heel weinig omgevingslicht
+    this.setupBreathingAreaLights();
     this.build();
   }
 
+  private setupBreathingAreaLights() {
+    const lightConfigs = [
+      { color: 0xff0000, phase: 0 },
+      { color: 0x00ff00, phase: Math.PI * 0.66 },
+      { color: 0x0000ff, phase: Math.PI * 1.33 },
+    ];
+
+    lightConfigs.forEach(cfg => {
+      // Maak de panelen breder en korter (bijv. 12x12) voor een zachte "vlek" licht
+      const rectLight = new THREE.RectAreaLight(cfg.color, 400, 120, 120);
+      this.scene.add(rectLight);
+      this.lights.push({ light: rectLight, phase: cfg.phase });
+    });
+  }
   private calculateStopRatio(
     curve: THREE.Curve<THREE.Vector3>,
     turnPoint: number,
@@ -167,16 +184,68 @@ export class CylinderEngine {
     this.clock.start();
     const loop = () => {
       this.animationId = requestAnimationFrame(loop);
+      const dt = this.clock.getDelta();
+      const time = this.clock.getElapsedTime();
+
       if (!this.animationFinished) {
-        const dt = Math.min(this.clock.getDelta(), 0.05);
+        // 1. Bouwfase
         this.progress += dt * this.config.animation.speed;
         this.update();
-
         if (this.progress >= 1) {
           this.progress = 1;
           this.animationFinished = true;
         }
+        // Lichten uit tijdens bouwen
+        this.lights.forEach(l => (l.light.intensity = 0));
+      } else if (!this.isFullyActive) {
+        // 2. Snellere en fellere opstartfase
+        this.flickerTimer += dt;
+
+        const t = this.flickerTimer;
+        // SpeedUp verhoogd naar 25 voor een snellere 'ratel' in het licht
+        const speedUp = t * t * 25;
+
+        // Sinus voor de puls
+        const softFlicker = Math.sin(speedUp) * 0.8 + 1;
+
+        // Iets snellere fade-in (1.2 sec totaal)
+        const fadeIn = Math.min(1, t / 1.2);
+
+        this.lights.forEach((item, i) => {
+          // Positie tijdens opstarten
+          const posTime = time * 0.8 + i * Math.PI * 0.5;
+          item.light.position.x = Math.sin(posTime) * 8;
+          item.light.position.y = Math.sin(posTime * 2) * 4;
+          item.light.position.z = 6;
+          item.light.lookAt(0, 0, 0);
+
+          // INTENSITEIT:
+          // We gaan hier naar een piek van 180 (veel feller dan de normale 100)
+          // De ondergrens is 5 voor een dieper contrast zonder zwart te worden
+          const peakIntensity = 0 + softFlicker * 175;
+          item.light.intensity = peakIntensity * fadeIn;
+        });
+
+        // Na 1.2 seconde knallen we door naar de Infinity loop
+        if (this.flickerTimer > 1.2) {
+          this.isFullyActive = true;
+        }
+      } else {
+        // 3. Normale Infinity & Breathing fase
+        this.lights.forEach((item, i) => {
+          const speed = 0.8;
+          const t = time * speed + i * Math.PI * 0.5;
+
+          item.light.position.x = Math.sin(t) * 8;
+          item.light.position.y = Math.sin(t * 2) * 4;
+          item.light.position.z = 6;
+          item.light.lookAt(0, 0, 0);
+
+          const breathing = Math.sin(time + item.phase);
+          item.light.intensity = 55 + breathing * 45; // 10 tot 100
+        });
       }
+
       this.renderer.render(this.scene, this.camera);
     };
     loop();

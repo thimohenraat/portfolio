@@ -2,15 +2,14 @@ import * as THREE from 'three';
 import type { CylinderConfig } from '../../types/cylinder';
 
 export class MaterialManager {
-  private static material: THREE.MeshPhongMaterial | null = null;
+  private static material: THREE.MeshStandardMaterial | null = null;
 
   static getMaterial(config: CylinderConfig) {
     if (!this.material) {
-      this.material = new THREE.MeshPhongMaterial({
-        color: config.material.color,
-        shininess: config.material.shininess,
-        emissive: new THREE.Color(config.material.color),
-        emissiveIntensity: config.material.emissiveIntensity,
+      this.material = new THREE.MeshStandardMaterial({
+        color: 0x000000, // Puur zwart zodat alleen het licht telt
+        roughness: 1, // Verhoog dit voor een "glowy" spreiding over de hele cylinder
+        metalness: 0.5, // Zet metalness lager om het licht meer als 'diffuse' kleur te vangen
       });
     }
     return this.material;
