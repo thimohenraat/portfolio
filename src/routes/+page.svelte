@@ -6,6 +6,7 @@
 
 <CylinderAnimation />
 <main>
+  <Header />
   <Carousel />
 </main>
 
