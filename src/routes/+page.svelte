@@ -1,21 +1,19 @@
 <script>
   import CylinderAnimation from '$lib/components/cylinder/CylinderAnimation.svelte';
+  import Carousel from '$lib/components/Carousel.svelte';
   import Header from '$lib/components/Header.svelte';
 </script>
 
-<!-- <Header /> -->
 <CylinderAnimation />
-
-<!-- <main>
-  <h1>Cylinder Animation</h1>
-</main> -->
+<main>
+  <Carousel />
+</main>
 
 <style>
   main {
     position: relative;
     z-index: 1;
-    color: black;
-    padding: 2rem;
-    font-family: sans-serif;
+    /* Zorg dat de main pas begint na de eerste viewport als je wilt scrollen */
+    margin-top: 0;
   }
 </style>

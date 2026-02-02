@@ -56,7 +56,7 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     margin: 5,
   },
   animation: {
-    speed: 0.4,
+    speed: 1,
     initialLengthRatio: 0.5,
   },
   camera: {
