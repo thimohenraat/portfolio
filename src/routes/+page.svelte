@@ -2,11 +2,13 @@
   import CylinderAnimation from '$lib/components/cylinder/CylinderAnimation.svelte';
   import Carousel from '$lib/components/Carousel.svelte';
   import Header from '$lib/components/Header.svelte';
+  import AboutSection from '$lib/components/about/AboutSection.svelte';
 </script>
 
 <CylinderAnimation />
 <main>
   <Header />
+  <AboutSection />
   <Carousel />
 </main>
 
