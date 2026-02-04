@@ -29,7 +29,6 @@
 
   h1 {
     margin: 0;
-    font-family: sans-serif; /* Of je eigen gekozen font */
     font-size: 2rem;
     text-transform: uppercase;
     font-weight: 800;

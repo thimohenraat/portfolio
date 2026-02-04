@@ -15,7 +15,7 @@
     width: 100%;
     padding: 100px 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 40px;
   }
 

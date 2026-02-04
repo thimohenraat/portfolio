@@ -23,6 +23,10 @@
     min-height: 100vh;
     overflow-x: hidden; /* Alleen horizontaal hidden */
     background-color: #fcfeff;
+    font-family: 'Atkinson Hyperlegible Next', sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    color: #111; /* Een diepgrijze kleur leest fijner dan puur zwart */
   }
 
   /* Smooth scrolling */
@@ -37,5 +41,10 @@
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+  }
+
+  :global(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+    font-weight: 800;
   }
 </style>
