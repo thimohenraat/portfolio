@@ -4,7 +4,9 @@
 </script>
 
 <section id="about">
-  <BigTitles />
+  <div class="title-container">
+    <BigTitles />
+  </div>
   <div class="text-container">
     <AboutText />
   </div>
@@ -13,14 +15,37 @@
 <style>
   #about {
     width: 100%;
-    padding: 100px 0;
-    display: flex;
-    flex-direction: row;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: 45% 55%;
+    padding: 100px 40px;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .title-container {
+    /* De titels vullen de 40% kolom */
+    width: 100%;
+    padding-top: 80px;
   }
 
   .text-container {
-    padding: 0 40px;
-    margin-top: -20px; /* Laat de tekst een beetje over de titels vloeien voor diepte */
+    /* De tekst vult de 60% kolom */
+    display: flex;
+    justify-content: flex-end; /* Duwt de tekst naar de rechterkant */
+    padding-left: 80px;
+  }
+
+  /* Responsive: op mobiel alles onder elkaar */
+  @media (max-width: 900px) {
+    #about {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      padding: 60px 20px;
+    }
+
+    .text-container {
+      padding-left: 0;
+      justify-content: flex-start;
+    }
   }
 </style>

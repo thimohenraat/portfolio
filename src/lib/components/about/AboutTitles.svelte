@@ -8,12 +8,30 @@
   .titles-wrapper {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    line-height: 1.2; /* Iets meer ademruimte voor elegantie */
+    text-transform: uppercase;
   }
 
   h2 {
-    font-size: clamp(4rem, 12vw, 10rem); /* Schalend lettertype */
     margin: 0;
-    /* text-transform: uppercase; */
-    font-weight: 900;
+    font-size: clamp(2rem, 3vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
   }
+
+  .title-and {
+    font-style: italic;
+    margin: 0.2rem 0;
+  }
+
+  .title-bottom {
+  }
+
+  /* @media (max-width: 900px) {
+    h2 {
+      font-size: clamp(1.8rem, 8vw, 2.5rem);
+    }
+  } */
 </style>
