@@ -63,7 +63,7 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     z: 12,
   },
   breakpoints: {
-    mobile: { width: 400, camera: { z: 10 } },
+    mobile: { width: 400, camera: { z: 18 } },
     tablet: { width: 768, camera: { z: 12 } },
     desktop: {
       width: 1000,

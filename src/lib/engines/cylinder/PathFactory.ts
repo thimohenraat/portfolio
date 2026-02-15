@@ -10,21 +10,20 @@ export class PathFactory {
   ) {
     const { ovalWidthScale, lineYOffset } = config.geometry;
 
-    if (isMobile) {
-      // 90 GRADEN GEDRAAID (VERTICAAL)
-      const turnPoint = (visibleHeight * ovalWidthScale) / 2;
-      const xOffset = lineYOffset; // De horizontale afstand tussen de twee lijnen
+    // Bepaal de as op basis van orientatie
+    const baseDimension = isMobile ? visibleHeight : visibleWidth;
+    const turnPoint = (baseDimension * ovalWidthScale) / 2;
 
-      const curve1 = this.createVerticalPath(turnPoint, xOffset, true);
-      const curve2 = this.createVerticalPath(-turnPoint, -xOffset, false);
-      return { curve1, curve2, turnPoint };
-    } else {
-      // STANDAARD (HORIZONTAAL)
-      const turnPoint = (visibleWidth * ovalWidthScale) / 2;
-      const curve1 = this.createPath(turnPoint, lineYOffset, true);
-      const curve2 = this.createPath(-turnPoint, -lineYOffset, false);
-      return { curve1, curve2, turnPoint };
-    }
+    // Gebruik een ternaire operator voor de fabriekskeuze
+    const create = isMobile
+      ? (t: number, off: number, side: boolean) => this.createVerticalPath(t, off, side)
+      : (t: number, off: number, side: boolean) => this.createPath(t, off, side);
+
+    return {
+      curve1: create(turnPoint, lineYOffset, true),
+      curve2: create(-turnPoint, -lineYOffset, false),
+      turnPoint,
+    };
   }
 
   // Originele horizontale methode

@@ -1,9 +1,9 @@
 <section class="about-section">
   <div class="content">
     <p class="description">
-      <span class="highlight">Innovatie</span> is mijn drijfveer, code mijn instrument.
-      <span class="highlight">Creatief</span>
-      transformeer ik uitdagingen in oplossingen. Gevestigd in
+      Ik combineer <span class="highlight">creativiteit</span> en
+      <span class="highlight">innovatieve</span>
+      om uitdagingen op te lossen met code — van concept tot uitvoering. Gevestigd in
       <span class="location">Amsterdam</span>.
     </p>
   </div>
