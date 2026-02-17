@@ -11,7 +11,6 @@
 
   onMount(() => {
     engine = new CylinderEngine(container, { ...DEFAULT_CONFIG, ...options });
-    engine.animate();
 
     const handleResize = () => engine.resize();
     window.addEventListener('resize', handleResize);

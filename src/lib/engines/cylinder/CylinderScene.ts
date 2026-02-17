@@ -4,8 +4,7 @@ import { MaterialManager } from './MaterialManager';
 import type { CylinderConfig } from '../../types/cylinder';
 
 export class CylinderScene {
-  public mesh1!: THREE.Mesh;
-  public mesh2!: THREE.Mesh;
+  public meshes: THREE.Mesh[] = [];
   public lights: { light: THREE.RectAreaLight; phase: number }[] = [];
 
   constructor(private scene: THREE.Scene) {
@@ -15,9 +14,9 @@ export class CylinderScene {
 
   private setupLights() {
     const lightConfigs = [
-      { color: 0xff0000, phase: 0 },
-      { color: 0x00ff00, phase: Math.PI * 0.66 },
-      { color: 0x0000ff, phase: Math.PI * 1.33 },
+      { color: 0x8b0000, phase: 0 }, // Dark Red (Deep Crimson)
+      { color: 0x006400, phase: Math.PI * 0.66 }, // Dark Green (Deep Emerald)
+      { color: 0x00008b, phase: Math.PI * 1.33 }, // Dark Blue (Deep Navy)
     ];
 
     lightConfigs.forEach(cfg => {
@@ -28,29 +27,47 @@ export class CylinderScene {
   }
 
   build(visibleWidth: number, visibleHeight: number, config: CylinderConfig, isMobile: boolean) {
-    // Cleanup oude meshes
-    [this.mesh1, this.mesh2].forEach(m => {
-      if (m) {
-        m.geometry.dispose();
-        this.scene.remove(m);
-      }
+    this.meshes.forEach(m => {
+      m.geometry.dispose();
+      this.scene.remove(m);
     });
+    this.meshes = [];
 
-    const { curve1, curve2 } = PathFactory.getCurves(visibleWidth, visibleHeight, config, isMobile);
     const material = MaterialManager.getMaterial(config);
+    const numRings = 20;
+    const { horizontalScaleStep, verticalScaleStep } = config.geometry;
 
-    this.mesh1 = new THREE.Mesh(MaterialManager.createGeometry(curve1, config), material);
-    this.mesh2 = new THREE.Mesh(MaterialManager.createGeometry(curve2, config), material);
+    for (let i = 0; i < numRings; i++) {
+      const horizontalMultiplier = 1.0 + i * horizontalScaleStep;
+      const verticalMultiplier = 1.0 + i * verticalScaleStep;
 
-    this.scene.add(this.mesh1, this.mesh2);
+      const curves = PathFactory.getCurves(
+        visibleWidth, // Gewoon de basis breedte
+        visibleHeight, // Gewoon de basis hoogte
+        config,
+        isMobile,
+        horizontalMultiplier, // Voor de turnPoint
+        verticalMultiplier // Voor de offset (hoogte)
+      );
+
+      const meshes = [
+        MaterialManager.createGeometry(curves.curve1, config),
+        MaterialManager.createGeometry(curves.curve2, config),
+      ].map(geo => new THREE.Mesh(geo, material));
+
+      meshes.forEach(m => {
+        this.meshes.push(m);
+        this.scene.add(m);
+      });
+    }
   }
 
   updateMeshes(progress: number, radialSegments: number) {
     const step = radialSegments * 6;
-    [this.mesh1, this.mesh2].forEach(m => {
-      if (!m) return;
+    this.meshes.forEach(m => {
       const geo = m.geometry as THREE.BufferGeometry;
       const total = geo.index!.count;
+      // Je kunt hier progress eventueel variëren per index voor een "waterval" effect
       geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
     });
   }
@@ -63,16 +80,24 @@ export class CylinderScene {
       }
 
       const t = time * 0.8 + i * Math.PI * 0.5;
-      item.light.position.set(Math.sin(t) * 8, Math.sin(t * 2) * 4, 6);
+
+      const radiusX = 12;
+      const radiusY = 6;
+      const posZ = 12;
+
+      item.light.position.set(Math.sin(t) * radiusX, Math.sin(t * 2) * radiusY, posZ);
+
+      // Zorg dat de lamp altijd naar het midden van de ringen kijkt
       item.light.lookAt(0, 0, 0);
 
       if (state.phase === 'FLICKER') {
         const speedUp = state.timer * state.timer * 25;
         const flicker = (Math.sin(speedUp) * 0.8 + 1) * Math.min(1, state.timer / 1.2);
-        item.light.intensity = flicker * 175;
+        item.light.intensity = flicker * 250; // Iets feller voor meer bereik
       } else {
         const breathing = Math.sin(time + item.phase);
-        item.light.intensity = 55 + breathing * 45;
+        // Meer basisintensiteit om alle 10 ringen te bereiken
+        item.light.intensity = 80 + breathing * 60;
       }
     });
   }

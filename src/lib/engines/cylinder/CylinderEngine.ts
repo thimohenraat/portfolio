@@ -9,7 +9,7 @@ export class CylinderEngine {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private clock = new THREE.Clock();
-  private anim = new AnimationController();
+  private anim: AnimationController;
   private cylScene: CylinderScene;
   private animationId = 0;
 
@@ -24,7 +24,12 @@ export class CylinderEngine {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(this.renderer.domElement);
 
+    // Één AnimationController voor alles
+    this.anim = new AnimationController();
+
+    // Één CylinderScene met 10 ringen erin
     this.cylScene = new CylinderScene(this.scene);
+
     this.resize();
     this.animate();
   }
@@ -53,27 +58,32 @@ export class CylinderEngine {
   public resize() {
     const bp = this.getBreakpoint();
     const isMobile = window.innerWidth < 650;
-    const w = isMobile ? window.innerWidth : bp.width;
-    const h = isMobile ? window.innerHeight : 600;
+
+    const w = window.innerWidth; // Volledig scherm
+    const h = window.innerHeight; // Volledig scherm
 
     this.camera.aspect = w / h;
     this.camera.position.z = bp.camera.z;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
+    this.renderer.setSize(w, h); // Canvas krijgt volledige grootte
 
     const canvas = this.renderer.domElement;
     Object.assign(canvas.style, {
-      position: 'absolute',
-      left: '50%',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '100vw',
+      height: '100vh',
+      margin: '0',
+      padding: '0',
       display: 'block',
     });
 
-    const vFOV = (this.camera.fov * Math.PI) / 180;
-    const visH = 2 * Math.tan(vFOV / 2) * this.camera.position.z;
+    const vFOH = (this.camera.fov * Math.PI) / 180;
+    const visH = 2 * Math.tan(vFOH / 2) * this.camera.position.z;
     const visW = visH * this.camera.aspect;
 
+    // Zorg dat de cylinder in dit hele zichtgebied past
     this.cylScene.build(visW, visH, this.config, isMobile);
   }
 

@@ -6,26 +6,34 @@ export class PathFactory {
     visibleWidth: number,
     visibleHeight: number,
     config: CylinderConfig,
-    isMobile: boolean
+    isMobile: boolean,
+    hMult: number = 1, // Horizontale groei
+    vMult: number = 1 // Verticale groei
   ) {
     const { ovalWidthScale, lineYOffset } = config.geometry;
 
-    // Bepaal de as op basis van orientatie
-    const baseDimension = isMobile ? visibleHeight : visibleWidth;
-    const turnPoint = (baseDimension * ovalWidthScale) / 2;
+    // Gebruik een veiligheidsmarge (0.9) zodat de ringen niet de rand raken
+    // En deel door de MAXIMALE multiplier die je verwacht (bijv. 1.5)
+    // zodat de grootste ring precies binnen de padding past.
+    const maxExpectedScale = 1.5;
+    const safeAreaW = (visibleWidth * 0.9) / maxExpectedScale;
+    const safeAreaH = (visibleHeight * 0.9) / maxExpectedScale;
 
-    // Gebruik een ternaire operator voor de fabriekskeuze
+    const baseDimension = isMobile ? safeAreaH : safeAreaW;
+
+    // Turnpoint (breedte) gebruikt hMult, Offset (hoogte) gebruikt vMult
+    const turnPoint = ((baseDimension * ovalWidthScale) / 2) * hMult;
+    const currentOffset = lineYOffset * vMult;
+
     const create = isMobile
       ? (t: number, off: number, side: boolean) => this.createVerticalPath(t, off, side)
       : (t: number, off: number, side: boolean) => this.createPath(t, off, side);
 
     return {
-      curve1: create(turnPoint, lineYOffset, true),
-      curve2: create(-turnPoint, -lineYOffset, false),
-      turnPoint,
+      curve1: create(turnPoint, currentOffset, true),
+      curve2: create(-turnPoint, -currentOffset, false),
     };
   }
-
   // Originele horizontale methode
   private static createPath(turn: number, y: number, isTop: boolean): THREE.CatmullRomCurve3 {
     const pts = [new THREE.Vector3(turn, y, 0), new THREE.Vector3(-turn, y, 0)];

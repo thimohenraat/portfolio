@@ -11,6 +11,8 @@ export interface CylinderGeometryConfig {
   ovalWidthScale: number;
   lineYOffset: number;
   margin: number;
+  horizontalScaleStep: number; // Nieuw
+  verticalScaleStep: number; // Nieuw
 }
 
 export interface CylinderAnimationConfig {
@@ -48,34 +50,36 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     shininess: 100,
   },
   geometry: {
-    radius: 0.01,
+    radius: 0.006,
     radialSegments: 12,
     tubeSegments: 300,
     ovalWidthScale: 0.5,
     lineYOffset: 2,
     margin: 5,
+    horizontalScaleStep: 0.05, // Hoe snel horizontaal groeien
+    verticalScaleStep: 0.5,
   },
   animation: {
     speed: 1,
     initialLengthRatio: 0.5,
   },
   camera: {
-    z: 12,
+    z: 20,
   },
   breakpoints: {
-    mobile: { width: 400, camera: { z: 18 } },
-    tablet: { width: 768, camera: { z: 12 } },
+    mobile: { width: 400, camera: { z: 30 } }, // Verhoogd
+    tablet: { width: 768, camera: { z: 25 } }, // Verhoogd
     desktop: {
       width: 1000,
-      camera: { z: 14 },
+      camera: { z: 20 },
     },
     ultrawide: {
       width: 1150,
-      camera: { z: 15 },
+      camera: { z: 22 },
     },
     max: {
       width: 1150,
-      camera: { z: 15 },
+      camera: { z: 22 },
     },
   },
 };
