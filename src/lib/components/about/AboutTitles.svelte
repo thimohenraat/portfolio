@@ -21,12 +21,18 @@
     white-space: nowrap;
   }
 
+  .title-top {
+    /* align-self: flex-end; */
+  }
+
   .title-and {
     font-style: italic;
+    font-weight: 400;
     margin: 0.2rem 0;
   }
 
   .title-bottom {
+    /* align-self: flex-start; */
   }
 
   /* @media (max-width: 900px) {
