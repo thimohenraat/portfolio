@@ -15,7 +15,7 @@
 
   h2 {
     margin: 0;
-    font-size: clamp(2rem, 3vw, 5rem);
+    font-size: clamp(1.75rem, 3vw, 5rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     white-space: nowrap;
@@ -35,9 +35,10 @@
     /* align-self: flex-start; */
   }
 
-  /* @media (max-width: 900px) {
+  @media (max-width: 768px) {
     h2 {
-      font-size: clamp(1.8rem, 8vw, 2.5rem);
+      white-space: normal;
+      text-align: center;
     }
-  } */
+  }
 </style>

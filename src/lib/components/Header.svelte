@@ -39,7 +39,7 @@
     /* De 'H' van Henraat moet onder de 'h' van Thimo. 
        Omdat 'Thimo' 5 letters heeft en 'Henraat' 7, 
        moeten we Henraat iets compenseren voor de perfecte 'H' alignment. */
-    margin-left: 1.4rem;
+    margin-left: 20px;
     font-weight: 400;
   }
 </style>

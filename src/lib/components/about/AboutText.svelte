@@ -11,9 +11,8 @@
 
 <style>
   .about-section {
-    display: flex;
-    align-items: center;
     width: 100%;
+    /* Geen flex meer; het element neemt alleen de ruimte van de inhoud */
   }
 
   .content {
@@ -21,18 +20,8 @@
   }
 
   .description {
-    font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
     line-height: 1.2;
     font-weight: 500;
   }
-
-  .highlight {
-  }
-
-  .location {
-  }
-
-  /* Responsive voor mobiel */
-  /* @media (max-width: ) {
-  } */
 </style>
