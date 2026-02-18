@@ -50,7 +50,7 @@ export const DEFAULT_CONFIG: CylinderConfig = {
     shininess: 100,
   },
   geometry: {
-    radius: 0.006,
+    radius: 0.008,
     radialSegments: 12,
     tubeSegments: 300,
     ovalWidthScale: 0.5,

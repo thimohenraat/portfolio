@@ -146,4 +146,19 @@
     margin: 0;
     font-weight: 400;
   }
+
+  /* --- Mobiele Aanpassingen --- */
+  @media (max-width: 768px) {
+    .carousel-track {
+      animation-duration: 35s;
+    }
+
+    h3 {
+      font-size: 13px;
+    }
+
+    .info {
+      font-size: 8px;
+    }
+  }
 </style>
