@@ -95,6 +95,7 @@ export class CylinderEngine {
       margin: '0',
       padding: '0',
       display: 'block',
+      pointerEvents: 'none',
     });
 
     const vFOH = (this.camera.fov * Math.PI) / 180;

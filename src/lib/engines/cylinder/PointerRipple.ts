@@ -9,7 +9,7 @@ export interface Ripple {
 
 export class PointerRipple {
   private ripples: Ripple[] = [];
-  private plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  private plane = new THREE.Plane();
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
 
@@ -28,27 +28,34 @@ export class PointerRipple {
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
+    // plane altijd voor camera gericht naar cylinder center
+    const camDir = new THREE.Vector3();
+    this.camera.getWorldDirection(camDir);
+    this.plane.setFromNormalAndCoplanarPoint(camDir, new THREE.Vector3(0, 0, 0));
+
     const hit = new THREE.Vector3();
-    this.raycaster.ray.intersectPlane(this.plane, hit);
+    const ok = this.raycaster.ray.intersectPlane(this.plane, hit);
+    if (!ok) return;
 
     const current = new THREE.Vector2(hit.x, hit.y);
 
-    let force = 0.08;
-    let dir = new THREE.Vector2(1, 0);
-
-    if (this.lastTime !== 0) {
-      const dt = now - this.lastTime;
-      const delta = current.clone().sub(this.lastPos);
-      const speed = delta.length() / Math.max(dt, 0.001);
-
-      dir = delta.normalize();
-
-      // zachte premium curve
-      force = THREE.MathUtils.clamp(speed * 0.14, 0.02, 0.28);
+    if (this.lastTime === 0) {
+      this.lastPos.copy(current);
+      this.lastTime = now;
+      return;
     }
+
+    const dt = now - this.lastTime;
+    const delta = current.clone().sub(this.lastPos);
+    const speed = delta.length() / Math.max(dt, 0.001);
 
     this.lastPos.copy(current);
     this.lastTime = now;
+
+    if (speed < 0.01) return;
+
+    const dir = delta.normalize();
+    const force = THREE.MathUtils.clamp(speed * 0.05, 0.01, 0.08);
 
     this.ripples.push({
       pos: current,
@@ -57,7 +64,7 @@ export class PointerRipple {
       force,
     });
 
-    if (this.ripples.length > 12) this.ripples.shift();
+    if (this.ripples.length > 10) this.ripples.shift();
   }
 
   getRipples() {
@@ -65,6 +72,6 @@ export class PointerRipple {
   }
 
   cleanup(time: number) {
-    this.ripples = this.ripples.filter(r => time - r.start < 2.6);
+    this.ripples = this.ripples.filter(r => time - r.start < 2.2);
   }
 }

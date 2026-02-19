@@ -56,6 +56,11 @@ export class CylinderScene {
       ].map(geo => new THREE.Mesh(geo, material));
 
       meshes.forEach(m => {
+        const geo = m.geometry as THREE.BufferGeometry;
+
+        // 🔥 originele posities opslaan
+        geo.userData.basePosition = geo.attributes.position.array.slice();
+
         this.meshes.push(m);
         this.scene.add(m);
       });
@@ -65,52 +70,43 @@ export class CylinderScene {
   updateMeshes(progress: number, radialSegments: number, ripples: any[], time: number) {
     const step = radialSegments * 6;
 
-    this.meshes.forEach((m, meshIndex) => {
+    this.meshes.forEach(m => {
       const geo = m.geometry as THREE.BufferGeometry;
-      const total = geo.index!.count;
-      geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
-
       const pos = geo.attributes.position;
+      const base = geo.userData.basePosition as Float32Array;
+
+      // reset geometry eerst
+      pos.array.set(base);
+
       const arr = pos.array as Float32Array;
 
-      for (let i = 0; i < pos.count; i++) {
-        const ix = i * 3;
-        const x = arr[ix];
-        const y = arr[ix + 1];
+      for (let i = 0; i < arr.length; i += 3) {
+        const x = base[i];
+        const y = base[i + 1];
+        const z = base[i + 2];
 
-        let offsetZ = 0;
-        let torsion = 0;
+        let offset = 0;
 
         for (const r of ripples) {
+          const age = time - r.start;
+          if (age > 2.2) continue;
+
           const dx = x - r.pos.x;
           const dy = y - r.pos.y;
-
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const t = time - r.start;
 
-          // ===== 1️⃣ PREMIUM RIPPLE =====
-          const radial = Math.sin(dist * 3 - t * 5) * Math.exp(-dist * 1.3) * Math.exp(-t * 2);
+          const wave = Math.sin(dist * 3 - age * 5) * Math.exp(-dist * 1.2) * Math.exp(-age * 1.8);
 
-          // ===== 2️⃣ DIRECTION RIPPLE =====
-          const dirInfluence = dx * r.dir.x + dy * r.dir.y;
-
-          const directional =
-            Math.sin(dirInfluence * 4 - t * 4) * Math.exp(-dist * 1.4) * Math.exp(-t * 2.2);
-
-          // ===== 3️⃣ ELASTIC TORSION =====
-          torsion += Math.sin(dist * 2.5 - t * 3.5) * Math.exp(-dist * 1.6) * r.force * 0.25;
-
-          offsetZ += (radial * 0.6 + directional * 0.4) * r.force;
+          offset += wave * r.force;
         }
 
-        // zachte snaar displacement
-        arr[ix + 2] = offsetZ * 0.55;
-
-        // torsion = kleine X verschuiving per ring
-        arr[ix] = x + torsion * (meshIndex * 0.015);
+        arr[i + 2] = z + offset;
       }
 
       pos.needsUpdate = true;
+
+      const total = geo.index!.count;
+      geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
     });
   }
 
