@@ -27,6 +27,18 @@
     font-optical-sizing: auto;
     font-style: normal;
     color: #111; /* Een diepgrijze kleur leest fijner dan puur zwart */
+
+    text-shadow:
+      -1px -1px 0 #ffffff,
+      1px -1px 0 #ffffff,
+      -1px 1px 0 #ffffff,
+      1px 1px 0 #ffffff,
+      -2px 0 0 #ffffff,
+      2px 0 0 #ffffff,
+      0 -2px 0 #ffffff,
+      0 2px 0 #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Smooth scrolling */

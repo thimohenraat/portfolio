@@ -1,16 +1,13 @@
 <script lang="ts">
-  // Je hoeft nu geen 'pos' meer mee te geven in je data!
   export let projects = [
-    { title: 'Project One', info: 'Web Design • 2024', img: 'https://via.placeholder.com/300x200' },
-    { title: 'Project Two', info: 'Branding • 2023', img: 'https://via.placeholder.com/300x200' },
+    { title: 'De Bonte hulst', info: 'Website', img: '/images/DeBontehulst.webp' },
+    { title: 'Sprint analysator app', info: 'App', img: '/images/SprintApp.webp' },
     {
       title: 'Project Three',
       info: 'Development • 2024',
       img: 'https://via.placeholder.com/300x200',
     },
     { title: 'Project Four', info: 'UI/UX Design', img: 'https://via.placeholder.com/300x200' },
-    { title: 'Project Five', info: 'Motion Graphics', img: 'https://via.placeholder.com/300x200' },
-    { title: 'Project Six', info: 'Photography', img: 'https://via.placeholder.com/300x200' },
   ];
 
   // We verdubbelen de lijst voor de naadloze loop
@@ -108,11 +105,9 @@
     margin-top: 12px;
   }
 
-  /* --- Styling --- */
-
   .image-wrapper {
     width: 100%;
-    height: 130px;
+    height: 160px;
     background: #111;
     overflow: hidden;
     border-radius: 2px;
@@ -131,7 +126,7 @@
 
   .carousel-item:hover img {
     filter: grayscale(0);
-    transform: scale(1.08);
+    /* transform: scale(1.08); */
   }
 
   .info {
@@ -150,7 +145,17 @@
   /* --- Mobiele Aanpassingen --- */
   @media (max-width: 768px) {
     .carousel-track {
-      animation-duration: 35s;
+      gap: 30px;
+      padding: 0 20px;
+      animation: scroll 40s linear infinite;
+    }
+
+    .carousel-item {
+      width: 200px;
+    }
+
+    .image-wrapper {
+      height: 114px;
     }
 
     h3 {

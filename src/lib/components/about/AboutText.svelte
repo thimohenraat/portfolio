@@ -2,7 +2,7 @@
   <div class="content">
     <p class="description">
       Ik combineer <span class="highlight">creativiteit</span> en
-      <span class="highlight">innovatieve</span>
+      <span class="highlight">innovatie</span>
       om uitdagingen op te lossen met code — van concept tot uitvoering. Gevestigd in
       <span class="location">Amsterdam</span>.
     </p>
@@ -24,4 +24,16 @@
     line-height: 1.2;
     font-weight: 500;
   }
+
+  /* .highlight:nth-child(1) {
+    color: #9333ea;
+  }
+
+  .highlight:nth-child(2) {
+    color: #9333ea;
+  } */
+
+  /* .location {
+    color: #ec0000;
+  } */
 </style>
