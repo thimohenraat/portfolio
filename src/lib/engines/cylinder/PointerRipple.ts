@@ -2,76 +2,47 @@ import * as THREE from 'three';
 
 export interface Ripple {
   pos: THREE.Vector2;
-  dir: THREE.Vector2;
   start: number;
   force: number;
 }
 
 export class PointerRipple {
   private ripples: Ripple[] = [];
-  private plane = new THREE.Plane();
-  private raycaster = new THREE.Raycaster();
-  private pointer = new THREE.Vector2();
-
-  private lastPos = new THREE.Vector2();
+  private lastPos = new THREE.Vector2(Infinity, Infinity);
   private lastTime = 0;
 
-  constructor(private camera: THREE.Camera) {}
+  constructor(private camera: THREE.PerspectiveCamera) {}
 
   addFromEvent(e: PointerEvent | Touch) {
-    const x = 'clientX' in e ? e.clientX : 0;
-    const y = 'clientY' in e ? e.clientY : 0;
     const now = performance.now() * 0.001;
-
-    this.pointer.x = (x / window.innerWidth) * 2 - 1;
-    this.pointer.y = -(y / window.innerHeight) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.pointer, this.camera);
-
-    // plane altijd voor camera gericht naar cylinder center
-    const camDir = new THREE.Vector3();
-    this.camera.getWorldDirection(camDir);
-    this.plane.setFromNormalAndCoplanarPoint(camDir, new THREE.Vector3(0, 0, 0));
-
-    const hit = new THREE.Vector3();
-    const ok = this.raycaster.ray.intersectPlane(this.plane, hit);
-    if (!ok) return;
-
-    const current = new THREE.Vector2(hit.x, hit.y);
-
-    if (this.lastTime === 0) {
-      this.lastPos.copy(current);
-      this.lastTime = now;
-      return;
-    }
-
     const dt = now - this.lastTime;
-    const delta = current.clone().sub(this.lastPos);
-    const speed = delta.length() / Math.max(dt, 0.001);
+    if (dt < 0.016) return; // throttle to ~60 events/sec
 
-    this.lastPos.copy(current);
+    // Direct NDC → world on z=0 plane — no Raycaster/Plane needed
+    const ndcX = (('clientX' in e ? e.clientX : 0) / window.innerWidth) * 2 - 1;
+    const ndcY = -(('clientY' in e ? e.clientY : 0) / window.innerHeight) * 2 + 1;
+
+    const halfH = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;
+    const worldX = ndcX * halfH * this.camera.aspect;
+    const worldY = ndcY * halfH;
+
+    const dx = worldX - this.lastPos.x;
+    const dy = worldY - this.lastPos.y;
+    const speed = Math.sqrt(dx * dx + dy * dy) / Math.max(dt, 0.001);
+
+    this.lastPos.set(worldX, worldY);
     this.lastTime = now;
 
-    if (speed < 0.01) return;
+    if (speed < 0.5) return;
 
-    const dir = delta.normalize();
-    const force = THREE.MathUtils.clamp(speed * 0.05, 0.01, 0.08);
-
-    this.ripples.push({
-      pos: current,
-      dir,
-      start: now,
-      force,
-    });
-
+    const force = Math.min(speed * 0.05, 0.08);
+    this.ripples.push({ pos: new THREE.Vector2(worldX, worldY), start: now, force });
     if (this.ripples.length > 10) this.ripples.shift();
   }
 
-  getRipples() {
-    return this.ripples;
-  }
-
-  cleanup(time: number) {
+  /** Cleanup + get in one call — no separate cleanup() needed */
+  getRipples(time: number): Ripple[] {
     this.ripples = this.ripples.filter(r => time - r.start < 2.2);
+    return this.ripples;
   }
 }

@@ -15,6 +15,12 @@ export class CylinderEngine {
   private ripple: PointerRipple;
   private animationId = 0;
 
+  // Bound handlers for proper removal
+  private onPointerMove = (e: PointerEvent) => this.ripple.addFromEvent(e);
+  private onTouchMove = (e: TouchEvent) => {
+    if (e.touches[0]) this.ripple.addFromEvent(e.touches[0]);
+  };
+
   constructor(
     private container: HTMLDivElement,
     private config: CylinderConfig
@@ -28,17 +34,10 @@ export class CylinderEngine {
 
     this.anim = new AnimationController();
     this.cylScene = new CylinderScene(this.scene);
-
-    // 🔥 ripple controller
     this.ripple = new PointerRipple(this.camera);
 
-    window.addEventListener('pointermove', e => {
-      this.ripple.addFromEvent(e);
-    });
-
-    window.addEventListener('touchmove', e => {
-      if (e.touches[0]) this.ripple.addFromEvent(e.touches[0]);
-    });
+    window.addEventListener('pointermove', this.onPointerMove, { passive: true });
+    window.addEventListener('touchmove', this.onTouchMove, { passive: true });
 
     this.resize();
     this.animate();
@@ -60,12 +59,13 @@ export class CylinderEngine {
     const time = this.clock.getElapsedTime();
     const state = this.anim.update(dt, this.config.animation.speed);
 
-    this.ripple.cleanup(time);
+    // getRipples now handles cleanup internally
+    const ripples = this.ripple.getRipples(time);
 
     this.cylScene.updateMeshes(
       this.anim.progress,
       this.config.geometry.radialSegments,
-      this.ripple.getRipples(),
+      ripples,
       time
     );
 
@@ -76,7 +76,6 @@ export class CylinderEngine {
   public resize() {
     const bp = this.getBreakpoint();
     const isMobile = window.innerWidth < 650;
-
     const w = window.innerWidth;
     const h = window.innerHeight;
 
@@ -85,8 +84,7 @@ export class CylinderEngine {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
 
-    const canvas = this.renderer.domElement;
-    Object.assign(canvas.style, {
+    Object.assign(this.renderer.domElement.style, {
       position: 'fixed',
       left: '0',
       top: '0',
@@ -107,6 +105,8 @@ export class CylinderEngine {
 
   public destroy() {
     cancelAnimationFrame(this.animationId);
+    window.removeEventListener('pointermove', this.onPointerMove);
+    window.removeEventListener('touchmove', this.onTouchMove);
     this.renderer.dispose();
     this.container.removeChild(this.renderer.domElement);
   }
