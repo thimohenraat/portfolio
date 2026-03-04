@@ -81,7 +81,9 @@ export class CylinderScene {
           const y = base[i + 1];
           const z = base[i + 2];
 
+          // HIER: Initialiseer de offset voor dit specifieke punt op 0
           let offset = 0;
+
           for (const r of ripples) {
             const age = time - r.start;
             if (age > RIPPLE_LIFETIME) continue;
@@ -89,23 +91,23 @@ export class CylinderScene {
             const dx = x - r.pos.x;
             const dy = y - r.pos.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Droplet animatie: de golf verplaatst zich naar buiten (dist - age * snelheid)
             const wave =
-              Math.sin(dist * 3 - age * 5) * Math.exp(-dist * 1.2) * Math.exp(-age * 1.8);
+              Math.sin(dist * 6 - age * 12) * Math.exp(-dist * 0.8) * Math.exp(-age * 1.5);
 
             offset += wave * r.force;
           }
 
           arr[i] = x;
           arr[i + 1] = y;
-          arr[i + 2] = z + offset;
+          arr[i + 2] = z + offset; // Gebruik de berekende totale offset
         }
       } else {
-        // No ripples — bulk reset is faster than per-vertex loop
         pos.array.set(base);
       }
 
       pos.needsUpdate = true;
-
       const total = geo.index!.count;
       geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
     }

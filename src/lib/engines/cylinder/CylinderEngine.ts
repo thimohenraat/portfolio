@@ -15,10 +15,9 @@ export class CylinderEngine {
   private ripple: PointerRipple;
   private animationId = 0;
 
-  // Bound handlers for proper removal
-  private onPointerMove = (e: PointerEvent) => this.ripple.addFromEvent(e);
-  private onTouchMove = (e: TouchEvent) => {
-    if (e.touches[0]) this.ripple.addFromEvent(e.touches[0]);
+  private handlePointerDown = (e: PointerEvent) => this.ripple.addDrop(e);
+  private handleTouchStart = (e: TouchEvent) => {
+    if (e.touches[0]) this.ripple.addDrop(e.touches[0]);
   };
 
   constructor(
@@ -36,8 +35,8 @@ export class CylinderEngine {
     this.cylScene = new CylinderScene(this.scene);
     this.ripple = new PointerRipple(this.camera);
 
-    window.addEventListener('pointermove', this.onPointerMove, { passive: true });
-    window.addEventListener('touchmove', this.onTouchMove, { passive: true });
+    window.addEventListener('pointerdown', this.handlePointerDown, { passive: true });
+    window.addEventListener('touchstart', this.handleTouchStart, { passive: true });
 
     this.resize();
     this.animate();
@@ -105,8 +104,9 @@ export class CylinderEngine {
 
   public destroy() {
     cancelAnimationFrame(this.animationId);
-    window.removeEventListener('pointermove', this.onPointerMove);
-    window.removeEventListener('touchmove', this.onTouchMove);
+    // Zorg dat de juiste listeners worden verwijderd
+    window.removeEventListener('pointerdown', this.handlePointerDown);
+    window.removeEventListener('touchstart', this.handleTouchStart);
     this.renderer.dispose();
     this.container.removeChild(this.renderer.domElement);
   }

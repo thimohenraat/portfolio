@@ -8,40 +8,38 @@ export interface Ripple {
 
 export class PointerRipple {
   private ripples: Ripple[] = [];
-  private lastPos = new THREE.Vector2(Infinity, Infinity);
-  private lastTime = 0;
 
   constructor(private camera: THREE.PerspectiveCamera) {}
 
-  addFromEvent(e: PointerEvent | Touch) {
+  addDrop(e: PointerEvent | Touch) {
     const now = performance.now() * 0.001;
-    const dt = now - this.lastTime;
-    if (dt < 0.016) return; // throttle to ~60 events/sec
 
-    // Direct NDC → world on z=0 plane — no Raycaster/Plane needed
-    const ndcX = (('clientX' in e ? e.clientX : 0) / window.innerWidth) * 2 - 1;
-    const ndcY = -(('clientY' in e ? e.clientY : 0) / window.innerHeight) * 2 + 1;
+    // Haal coördinaten op (werkt voor muis en touch)
+    const clientX = 'clientX' in e ? e.clientX : (e as Touch).clientX;
+    const clientY = 'clientY' in e ? e.clientY : (e as Touch).clientY;
 
+    // Omzetten naar NDC (Normalized Device Coordinates)
+    const ndcX = (clientX / window.innerWidth) * 2 - 1;
+    const ndcY = -(clientY / window.innerHeight) * 2 + 1;
+
+    // Bereken wereldpositie op het z=0 vlak
     const halfH = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;
     const worldX = ndcX * halfH * this.camera.aspect;
     const worldY = ndcY * halfH;
 
-    const dx = worldX - this.lastPos.x;
-    const dy = worldY - this.lastPos.y;
-    const speed = Math.sqrt(dx * dx + dy * dy) / Math.max(dt, 0.001);
+    // Voeg een 'druppel' toe met een vaste kracht (force)
+    this.ripples.push({
+      pos: new THREE.Vector2(worldX, worldY),
+      start: now,
+      force: 0.12, // De impact van de druppel
+    });
 
-    this.lastPos.set(worldX, worldY);
-    this.lastTime = now;
-
-    if (speed < 0.5) return;
-
-    const force = Math.min(speed * 0.05, 0.08);
-    this.ripples.push({ pos: new THREE.Vector2(worldX, worldY), start: now, force });
-    if (this.ripples.length > 10) this.ripples.shift();
+    // Beperk het aantal gelijktijdige ripples voor performance
+    if (this.ripples.length > 8) this.ripples.shift();
   }
 
-  /** Cleanup + get in one call — no separate cleanup() needed */
   getRipples(time: number): Ripple[] {
+    // Filter ripples die langer dan 2.2 seconden duren
     this.ripples = this.ripples.filter(r => time - r.start < 2.2);
     return this.ripples;
   }
