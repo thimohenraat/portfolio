@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { PathFactory } from './PathFactory';
 import { MaterialManager } from './MaterialManager';
 import type { CylinderConfig } from '../../types/cylinder';
+import type { Ripple } from './PointerRipple';
 
 const RIPPLE_LIFETIME = 2.2;
+const NUM_RINGS = 20;
 
 export class CylinderScene {
   public meshes: THREE.Mesh[] = [];
@@ -14,12 +16,13 @@ export class CylinderScene {
     this.setupLights();
   }
 
-  private setupLights() {
+  private setupLights(): void {
     const configs = [
       { color: 0x8b0000, phase: 0 },
       { color: 0x006400, phase: Math.PI * 0.66 },
       { color: 0x00008b, phase: Math.PI * 1.33 },
-    ];
+    ] as const;
+
     for (const cfg of configs) {
       const light = new THREE.RectAreaLight(cfg.color, 0, 120, 120);
       this.scene.add(light);
@@ -27,7 +30,13 @@ export class CylinderScene {
     }
   }
 
-  build(visibleWidth: number, visibleHeight: number, config: CylinderConfig, isMobile: boolean) {
+  build(
+    visibleWidth: number,
+    visibleHeight: number,
+    config: CylinderConfig,
+    isMobile: boolean
+  ): void {
+    // Dispose existing meshes properly
     for (const m of this.meshes) {
       m.geometry.dispose();
       this.scene.remove(m);
@@ -35,10 +44,9 @@ export class CylinderScene {
     this.meshes = [];
 
     const material = MaterialManager.getMaterial(config);
-    const numRings = 20;
     const { horizontalScaleStep, verticalScaleStep } = config.geometry;
 
-    for (let i = 0; i < numRings; i++) {
+    for (let i = 0; i < NUM_RINGS; i++) {
       const hMult = 1.0 + i * horizontalScaleStep;
       const vMult = 1.0 + i * verticalScaleStep;
       const curves = PathFactory.getCurves(
@@ -52,70 +60,75 @@ export class CylinderScene {
 
       for (const curve of [curves.curve1, curves.curve2]) {
         const geo = MaterialManager.createGeometry(curve, config);
+        const posArray = geo.attributes.position.array as Float32Array;
+
+        // Store a snapshot of base positions directly on the geometry's userData
+        geo.userData.basePosition = new Float32Array(posArray);
+
         const mesh = new THREE.Mesh(geo, material);
-
-        // Store original positions for ripple reset
-        (geo as any).userData.basePosition = (
-          geo.attributes.position.array as Float32Array
-        ).slice();
-
         this.meshes.push(mesh);
         this.scene.add(mesh);
       }
     }
   }
 
-  updateMeshes(progress: number, radialSegments: number, ripples: any[], time: number) {
+  updateMeshes(progress: number, radialSegments: number, ripples: Ripple[], time: number): void {
     const step = radialSegments * 6;
     const hasRipples = ripples.length > 0;
 
+    // Pre-filter active ripples once per frame instead of per-vertex
+    const activeRipples = hasRipples ? ripples.filter(r => time - r.start < RIPPLE_LIFETIME) : [];
+
     for (const m of this.meshes) {
       const geo = m.geometry as THREE.BufferGeometry;
-      const pos = geo.attributes.position;
+      const posAttr = geo.attributes.position;
+      const arr = posAttr.array as Float32Array;
       const base = geo.userData.basePosition as Float32Array;
-      const arr = pos.array as Float32Array;
 
-      if (hasRipples) {
+      if (activeRipples.length > 0) {
         for (let i = 0; i < arr.length; i += 3) {
           const x = base[i];
           const y = base[i + 1];
-          const z = base[i + 2];
 
-          // HIER: Initialiseer de offset voor dit specifieke punt op 0
           let offset = 0;
 
-          for (const r of ripples) {
+          for (const r of activeRipples) {
             const age = time - r.start;
-            if (age > RIPPLE_LIFETIME) continue;
-
             const dx = x - r.pos.x;
             const dy = y - r.pos.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            // Droplet animatie: de golf verplaatst zich naar buiten (dist - age * snelheid)
-            const wave =
-              Math.sin(dist * 6 - age * 12) * Math.exp(-dist * 0.8) * Math.exp(-age * 1.5);
-
-            offset += wave * r.force;
+            // Ripple wave: expands outward, attenuates with distance and age
+            offset +=
+              Math.sin(dist * 6 - age * 12) *
+              Math.exp(-dist * 0.8) *
+              Math.exp(-age * 1.5) *
+              r.force;
           }
 
+          // x and y are unchanged; only write z
           arr[i] = x;
           arr[i + 1] = y;
-          arr[i + 2] = z + offset; // Gebruik de berekende totale offset
+          arr[i + 2] = base[i + 2] + offset;
         }
       } else {
-        pos.array.set(base);
+        // Bulk copy is significantly faster than a loop
+        arr.set(base);
       }
 
-      pos.needsUpdate = true;
+      posAttr.needsUpdate = true;
+
       const total = geo.index!.count;
       geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
     }
   }
 
-  updateLights(time: number, state: any) {
+  updateLights(time: number, state: { phase: string; timer?: number }): void {
+    const isBuild = state.phase === 'BUILD';
+    const isFlicker = state.phase === 'FLICKER';
+
     for (const item of this.lights) {
-      if (state.phase === 'BUILD') {
+      if (isBuild) {
         item.light.intensity = 0;
         continue;
       }
@@ -124,13 +137,27 @@ export class CylinderScene {
       item.light.position.set(Math.sin(t) * 12, Math.sin(t * 2) * 6, 12);
       item.light.lookAt(0, 0, 0);
 
-      if (state.phase === 'FLICKER') {
-        const speedUp = state.timer * state.timer * 25;
-        const envelope = Math.min(1, state.timer / 1.2);
+      const timer = state.timer;
+      if (isFlicker && timer != null) {
+        const speedUp = timer * timer * 25;
+        const envelope = Math.min(1, timer / 1.2);
         item.light.intensity = (Math.sin(speedUp) * 0.8 + 1) * envelope * 250;
       } else {
         item.light.intensity = 80 + Math.sin(time + item.phase) * 60;
       }
     }
+  }
+
+  dispose(): void {
+    for (const m of this.meshes) {
+      m.geometry.dispose();
+      this.scene.remove(m);
+    }
+    this.meshes = [];
+
+    for (const item of this.lights) {
+      this.scene.remove(item.light);
+    }
+    this.lights = [];
   }
 }
