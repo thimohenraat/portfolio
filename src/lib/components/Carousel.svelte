@@ -5,7 +5,7 @@
     {
       title: 'Project Three',
       info: 'Development • 2024',
-      img: 'https://via.placeholder.com/300x200',
+      img: '/images/ZoekApp.webp',
     },
     { title: 'Project Four', info: 'UI/UX Design', img: 'https://via.placeholder.com/300x200' },
   ];
