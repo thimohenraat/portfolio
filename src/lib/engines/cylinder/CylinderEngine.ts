@@ -1,3 +1,4 @@
+// CylinderEngine.ts
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { CylinderScene } from './CylinderScene';
@@ -15,15 +16,21 @@ export class CylinderEngine {
   private readonly ripple: PointerRipple;
   private animationId = 0;
 
-  // Bound event handlers stored as fields so removeEventListener works correctly
+  // Tijdsynchronisatie: performance.now() startpunt om gelijk te lopen met THREE.Clock
+  private readonly startPerformance = performance.now();
+
+  // Gebonden event handlers
   private readonly handlePointerDown = (e: PointerEvent): void => {
-    // Ignore non-primary buttons (right-click, middle-click)
     if (e.button !== 0) return;
-    this.ripple.addDrop(e);
+    const now = (performance.now() - this.startPerformance) / 1000; // seconden sinds start
+    this.ripple.addDrop(e, now);
   };
 
   private readonly handleTouchStart = (e: TouchEvent): void => {
-    if (e.touches[0]) this.ripple.addDrop(e.touches[0]);
+    if (e.touches[0]) {
+      const now = (performance.now() - this.startPerformance) / 1000;
+      this.ripple.addDrop(e.touches[0], now);
+    }
   };
 
   private readonly handleResize = (): void => {
@@ -49,7 +56,7 @@ export class CylinderEngine {
       margin: '0',
       padding: '0',
       display: 'block',
-      pointerEvents: 'none',
+      pointerEvents: 'none', // canvas vangt geen muis events, die gaan naar window
     });
 
     container.appendChild(this.renderer.domElement);
@@ -73,14 +80,14 @@ export class CylinderEngine {
     return this.config.breakpoints.desktop;
   }
 
-  // Arrow function so it can be passed directly to requestAnimationFrame
+  // Arrow function zodat 'this' correct blijft in requestAnimationFrame
   public readonly animate = (): void => {
     this.animationId = requestAnimationFrame(this.animate);
 
     const dt = this.clock.getDelta();
     const time = this.clock.getElapsedTime();
     const state = this.anim.update(dt, this.config.animation.speed);
-    const ripples = this.ripple.getRipples(time);
+    const ripples = this.ripple.getRipples(time); // tijd meegeven voor filtering
 
     this.cylScene.updateMeshes(
       this.anim.progress,
@@ -104,7 +111,7 @@ export class CylinderEngine {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
 
-    // Compute visible world dimensions at z=0
+    // Zichtbare wereldafmetingen op z=0
     const halfFovRad = (this.camera.fov * Math.PI) / 360;
     const visH = 2 * Math.tan(halfFovRad) * this.camera.position.z;
     const visW = visH * this.camera.aspect;

@@ -1,10 +1,11 @@
+// CylinderScene.ts
 import * as THREE from 'three';
 import { PathFactory } from './PathFactory';
 import { MaterialManager } from './MaterialManager';
 import type { CylinderConfig } from '../../types/cylinder';
 import type { Ripple } from './PointerRipple';
+import { RIPPLE_LIFETIME } from './PointerRipple'; // gedeelde constante
 
-const RIPPLE_LIFETIME = 2.2;
 const NUM_RINGS = 20;
 
 export class CylinderScene {
@@ -36,7 +37,7 @@ export class CylinderScene {
     config: CylinderConfig,
     isMobile: boolean
   ): void {
-    // Dispose existing meshes properly
+    // Oude meshes opruimen
     for (const m of this.meshes) {
       m.geometry.dispose();
       this.scene.remove(m);
@@ -62,7 +63,7 @@ export class CylinderScene {
         const geo = MaterialManager.createGeometry(curve, config);
         const posArray = geo.attributes.position.array as Float32Array;
 
-        // Store a snapshot of base positions directly on the geometry's userData
+        // Basisposities opslaan in userData (snapshot)
         geo.userData.basePosition = new Float32Array(posArray);
 
         const mesh = new THREE.Mesh(geo, material);
@@ -73,11 +74,8 @@ export class CylinderScene {
   }
 
   updateMeshes(progress: number, radialSegments: number, ripples: Ripple[], time: number): void {
-    const step = radialSegments * 6;
+    const step = radialSegments * 6; // stapgrootte voor drawRange (aantal indices per segment)
     const hasRipples = ripples.length > 0;
-
-    // Pre-filter active ripples once per frame instead of per-vertex
-    const activeRipples = hasRipples ? ripples.filter(r => time - r.start < RIPPLE_LIFETIME) : [];
 
     for (const m of this.meshes) {
       const geo = m.geometry as THREE.BufferGeometry;
@@ -85,20 +83,22 @@ export class CylinderScene {
       const arr = posAttr.array as Float32Array;
       const base = geo.userData.basePosition as Float32Array;
 
-      if (activeRipples.length > 0) {
+      if (hasRipples) {
+        // Lokale variabelen voor snelheid
+        const numRipples = ripples.length;
         for (let i = 0; i < arr.length; i += 3) {
           const x = base[i];
           const y = base[i + 1];
-
           let offset = 0;
 
-          for (const r of activeRipples) {
+          // Alle rimpels overlopen (max 8)
+          for (let rIdx = 0; rIdx < numRipples; rIdx++) {
+            const r = ripples[rIdx];
             const age = time - r.start;
             const dx = x - r.pos.x;
             const dy = y - r.pos.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            // Ripple wave: expands outward, attenuates with distance and age
             offset +=
               Math.sin(dist * 6 - age * 12) *
               Math.exp(-dist * 0.8) *
@@ -106,18 +106,18 @@ export class CylinderScene {
               r.force;
           }
 
-          // x and y are unchanged; only write z
           arr[i] = x;
           arr[i + 1] = y;
           arr[i + 2] = base[i + 2] + offset;
         }
       } else {
-        // Bulk copy is significantly faster than a loop
+        // Geen rimpels: snel kopiëren
         arr.set(base);
       }
 
       posAttr.needsUpdate = true;
 
+      // Alleen zichtbare deel van de geometrie tekenen (animatie van opbouw)
       const total = geo.index!.count;
       geo.setDrawRange(0, Math.floor((progress * total) / step) * step);
     }
