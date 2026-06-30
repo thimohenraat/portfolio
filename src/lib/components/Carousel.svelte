@@ -1,13 +1,20 @@
 <script lang="ts">
   export let projects = [
-    { title: 'De Bonte hulst', info: 'Website', img: '/images/DeBontehulst.webp' },
-    { title: 'Sprint analysator app', info: 'App', img: '/images/SprintApp.webp' },
     {
-      title: 'Project Three',
-      info: 'Development • 2024',
+      title: 'Wooncoöperatie De Bonte hulst',
+      info: 'Website - Design',
+      img: '/images/DeBontehulst.webp',
+    },
+    {
+      title: 'Sprint analysator',
+      info: 'App - Sensor - Flutter',
+      img: '/images/SprintApp.webp',
+    },
+    {
+      title: 'Rijkswaterstaat zoek app',
+      info: 'Python - Svelte - Gebruikergericht',
       img: '/images/ZoekApp.webp',
     },
-    { title: 'Project Four', info: 'UI/UX Design', img: 'https://via.placeholder.com/300x200' },
   ];
 
   // We verdubbelen de lijst voor de naadloze loop
