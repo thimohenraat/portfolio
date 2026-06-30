@@ -11,7 +11,14 @@
   ];
 
   // We verdubbelen de lijst voor de naadloze loop
-  const displayProjects = [...projects, ...projects];
+  const displayProjects = [
+    ...projects,
+    ...projects,
+    ...projects,
+    ...projects,
+    ...projects,
+    ...projects,
+  ];
 </script>
 
 <section class="carousel-wrapper">
@@ -63,7 +70,7 @@
     gap: 60px;
     padding: 0 40px;
     align-items: flex-end;
-    animation: scroll 55s linear infinite;
+    animation: scroll 240s linear infinite;
   }
 
   .carousel-track:hover {
@@ -75,7 +82,7 @@
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translateX(-66.6666666%);
     }
   }
 
@@ -147,7 +154,6 @@
     .carousel-track {
       gap: 30px;
       padding: 0 20px;
-      animation: scroll 40s linear infinite;
     }
 
     .carousel-item {
