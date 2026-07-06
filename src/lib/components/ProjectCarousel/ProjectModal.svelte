@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade, fly } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import type { Project } from '$lib/types/project';
 
   let { project, onClose }: { project: Project; onClose: () => void } = $props();
@@ -16,58 +16,63 @@
 
   <div
     class="modal"
-    transition:fly={{ y: 15, duration: 250 }}
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-title"
     tabindex="-1"
+    transition:fade={{ duration: 200 }}
   >
-    <button class="close-btn" onclick={onClose} aria-label="Sluiten">✕</button>
+    <div class="top-row">
+      <button class="close-btn" onclick={onClose}> ✕ (close) </button>
+    </div>
 
     <div class="content">
-      <!-- Links: Tekstzijde (Geen scroll, titel boven, beschrijving gecentreerd) -->
+      <!-- Tekstzijde -->
       <div class="text-side">
-        <div class="header-group">
+        <div class="text-content-wrapper">
           {#if project.info}
-            <span class="info">{project.info}</span>
+            <span class="info">({project.info})</span>
           {/if}
           <h2 id="modal-title">{project.title}</h2>
-        </div>
 
-        <div class="center-group">
           {#if project.description}
             <p class="description">{project.description}</p>
           {/if}
-        </div>
 
-        <div class="footer-group">
           {#if project.link}
             <a class="link" href={project.link} target="_blank" rel="noopener noreferrer">
-              Bekijk project <span class="arrow">→</span>
+              View project <span class="arrow">→</span>
             </a>
           {/if}
         </div>
       </div>
 
-      <!-- Rechts: Grote afbeelding die maximaal en volledig getoond wordt -->
+      <!-- Afbeeldingszijde (Perfect uitgelijnd op de grid-lijnen) -->
       <div class="image-side">
-        <img src={project.img} alt={project.title} />
+        <div class="image-container">
+          <img src={project.img} alt={project.title} />
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
+  /* --- Globale Schaduw Reset --- */
+  .modal,
+  .modal :global(*) {
+    text-shadow: none !important;
+  }
+
   .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(12px);
+    background: rgba(20, 18, 14, 0.4);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    padding: 32px;
   }
 
   .backdrop-close {
@@ -78,188 +83,213 @@
     cursor: pointer;
   }
 
+  /* Desktop basis */
   .modal {
     position: relative;
     z-index: 1;
-    width: 100%;
-    max-width: 1040px; /* Iets breder voor een nog weidser effect */
-    height: 65vh;
-    background: #ffffff;
-    border-radius: 28px 12px 28px 12px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
-    overflow: hidden; /* Garandeert dat er absoluut geen scrollbars ontstaan */
+    width: 100vw;
+    height: 60vh;
+    background: #f6f5f2;
+    color: #14120e;
+    display: flex;
+    flex-direction: column;
+    border-top: 0.5px solid rgba(20, 18, 14, 0.15);
+    border-bottom: 0.5px solid rgba(20, 18, 14, 0.15);
+    overflow: hidden;
+  }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 24px 64px;
+    border-bottom: 0.5px solid rgba(20, 18, 14, 0.15);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex-shrink: 0;
   }
 
   .close-btn {
-    position: absolute;
-    top: 24px;
-    left: 24px;
-    border: none;
-    background: #ffffff;
-    color: #000000;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 3;
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #14120e;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
   }
 
   .close-btn:hover {
-    transform: scale(1.05);
-    background: #f0f2f3;
+    opacity: 1;
   }
 
   .content {
     display: flex;
     align-items: stretch;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
   }
 
+  /* Exact 50% / 50% verdeling voor perfecte alignment */
   .text-side {
     flex: 1;
-    padding: 72px 48px 48px 48px; /* Extra top-padding geeft de titel ademruimte naast de sluitknop */
+    padding: 64px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Verdeelt top, center en bottom groepen */
-    overflow: hidden; /* Blokkeert scrollen */
+    justify-content: flex-start; /* Tekst start strak bovenaan */
+    align-items: flex-start;
+    overflow: hidden;
   }
 
-  .header-group {
-    width: 100%;
+  .text-content-wrapper {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  /* Duwt zichzelf naar het exacte verticale midden van de text-side */
-  .center-group {
-    margin: auto 0;
-    width: 100%;
-  }
-
-  .footer-group {
-    width: 100%;
-  }
-
+  /* Afbeeldingspaneel */
   .image-side {
-    flex: 1.2; /* Geeft nog meer prioriteit en ruimte aan de afbeelding */
+    flex: 1;
+    display: flex;
+    align-items: flex-start; /* Uitgelijnd met de top van de tekstkolom */
+    justify-content: center;
+    padding: 64px;
+    border-left: 0.5px solid rgba(20, 18, 14, 0.15);
+  }
+
+  /* Container die de verhoudingen bewaakt */
+  .image-container {
+    width: 100%;
     height: 100%;
-    background: #fcfdfe; /* Zachte off-white achtergrond vult eventuele lege randen van de contain op */
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .image-side img {
-    width: 100%;
-    height: 100%;
-    /* 'contain' zorgt ervoor dat de liggende rechthoek ALTIJD 100% volledig zichtbaar is */
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     display: block;
-    padding: 16px; /* Subtiele padding zodat de foto prachtig zweeft binnen het witte vlak */
   }
 
+  /* Typografie */
   .info {
     font-size: 11px;
-    text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: #777;
-    font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
+    text-transform: uppercase;
+    opacity: 0.45;
   }
 
   h2 {
     margin: 0;
-    font-size: 28px;
-    line-height: 1.2;
-    font-weight: 800;
-    color: #000;
+    font-size: 38px;
+    line-height: 1.1;
+    font-weight: 400;
     letter-spacing: -0.5px;
   }
 
   .description {
-    color: #444;
-    line-height: 1.65;
-    font-size: 14px;
+    line-height: 1.6;
+    font-size: 15px;
     margin: 0;
+    opacity: 0.7;
   }
 
   .link {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #000;
-    font-size: 13px;
-    font-weight: 700;
+    color: #14120e;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     text-decoration: none;
-    border-bottom: 2px solid #000;
+    border-bottom: 0.5px solid currentColor;
     width: fit-content;
-    padding-bottom: 2px;
-  }
-
-  .link:hover {
-    opacity: 0.6;
+    padding-bottom: 4px;
+    opacity: 0.8;
+    transition: opacity 0.15s ease;
+    margin-top: 8px;
   }
 
   .arrow {
-    transition: transform 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .link:hover .arrow {
-    transform: translateX(3px);
+    transform: translateX(4px);
   }
 
-  /* Responsive styling voor mobiele schermen */
-  @media (max-width: 768px) {
+  /* --- MOBIELE OPTIMALISATIE (GEEN SCROLLBARS) --- */
+  @media (max-width: 900px) {
     .backdrop {
       padding: 16px;
     }
 
     .modal {
+      width: 100%;
       height: auto;
-      max-height: 90vh;
-      border-radius: 20px;
+      max-height: 80vh; /* Strikte limiet om over de viewport heen te klappen */
+      border: 0.5px solid rgba(20, 18, 14, 0.15);
+      overflow: hidden; /* Voorkomt de noodzaak voor een scrollbar */
+    }
+
+    .top-row {
+      padding: 16px 20px;
     }
 
     .content {
       flex-direction: column;
-      height: auto;
+      height: calc(100% - 49px); /* Haalt exact de hoogte van de top-row eraf */
     }
 
+    /* Image nu verplicht BOVEN */
     .image-side {
-      width: 100%;
-      height: 30vh;
       order: -1;
+      height: 28vh; /* Vaste compacte hoogte */
+      padding: 16px;
+      border-left: none;
+      border-bottom: 0.5px solid rgba(20, 18, 14, 0.15);
+      align-items: center; /* Op mobiel centreren we de afbeelding in zijn vak */
     }
 
-    .image-side img {
-      padding: 8px;
+    .image-container {
+      height: 100%;
     }
 
+    /* Tekstzijde op mobiel sluit hier direct op aan */
     .text-side {
-      width: 100%;
-      padding: 32px 24px;
-      gap: 20px;
+      padding: 20px;
+      gap: 12px;
     }
 
-    .center-group {
-      margin: 0; /* Schakelt zware centrering uit op mobiel voor natuurlijke flow */
-    }
-
-    .close-btn {
-      top: 12px;
-      left: 12px;
+    .text-content-wrapper {
+      max-width: 100%;
+      gap: 12px;
     }
 
     h2 {
-      font-size: 22px;
+      font-size: 24px;
+    }
+
+    .description {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .arrow {
+      transition: none;
     }
   }
 </style>

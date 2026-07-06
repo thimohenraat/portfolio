@@ -109,6 +109,17 @@
   }
 
   /* --- Wiskundige Posities --- */
+  .text-content {
+    text-shadow:
+      -1px -1px 0 #fcfeff,
+      1px -1px 0 #fcfeff,
+      -1px 1px 0 #fcfeff,
+      1px 1px 0 #fcfeff,
+      -2px 0 0 #fcfeff,
+      2px 0 0 #fcfeff,
+      0 -2px 0 #fcfeff,
+      0 2px 0 #fcfeff;
+  }
 
   /* EVEN ITEMS: Laag, tekst boven */
   .is-low {

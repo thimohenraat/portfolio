@@ -29,14 +29,14 @@
     color: #111; /* Een diepgrijze kleur leest fijner dan puur zwart */
 
     text-shadow:
-      -1px -1px 0 #ffffff,
-      1px -1px 0 #ffffff,
-      -1px 1px 0 #ffffff,
-      1px 1px 0 #ffffff,
-      -2px 0 0 #ffffff,
-      2px 0 0 #ffffff,
-      0 -2px 0 #ffffff,
-      0 2px 0 #ffffff;
+      -1px -1px 0 #fcfeff,
+      1px -1px 0 #fcfeff,
+      -1px 1px 0 #fcfeff,
+      1px 1px 0 #fcfeff,
+      -2px 0 0 #fcfeff,
+      2px 0 0 #fcfeff,
+      0 -2px 0 #fcfeff,
+      0 2px 0 #fcfeff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
