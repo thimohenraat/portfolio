@@ -41,7 +41,7 @@
 
           {#if project.link}
             <a class="link" href={project.link} target="_blank" rel="noopener noreferrer">
-              View project <span class="arrow">→</span>
+              Bekijk project <span class="arrow">→</span>
             </a>
           {/if}
         </div>
